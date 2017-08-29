@@ -3,7 +3,7 @@
 """
 CS579: Assignment 0
 Collecting a political social network
-Edited
+
 In this assignment, I've given you a list of Twitter accounts of 4
 U.S. presedential candidates from the previous election.
 
