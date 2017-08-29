@@ -91,7 +91,8 @@ def complexity_of_bfs(V, E, K):
     True
     """
     ###TODO
-    pass
+
+    return V + E
 
 
 def bottom_up(root, node2distances, node2num_paths, node2parents):
