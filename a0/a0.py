@@ -297,7 +297,13 @@ def create_graph(users, friend_counts):
       A networkx Graph
     """
     ###TODO
-    pass
+    graph=nx.Graph()
+    for user in users:
+        graph.add_node(user['screen_name'])
+        for fri in user['friends']:
+            if friend_counts[fri]>1:
+                graph.add_edge(fri,user['screen_name'])
+    return graph
 
 
 def draw_network(graph, users, filename):
