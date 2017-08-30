@@ -11,16 +11,16 @@ How is this approach misleading? How might you fix it?
 
 The similarity between two users can be defined by finding the probabilities because the count of friends for all the users are randomly distributed. 
 
-The overlap friinds for Jill Stein and Gary Johnson = 238
+The overlap friends for Jill Stein and Gary Johnson = 238
 Using get_friends functions we can find the total friends for all the 4 users.
-Total friends for Jill Stein = 
-Total friends for Gary Johnson =
-Total friends for Hillary Clinton =
-Total friends for Donald Trump =
+Total friends for Jill Stein = 1645
+Total friends for Gary Johnson = 3482
+Total friends for Hillary Clinton = 762
+Total friends for Donald Trump = 45
 
-Probability(Jill Stein & Gary Johnson) = 
+Probability(Jill Stein & Gary Johnson) = 238/(1645+3482) = 238/5127 =0.04642
 
-Probability(Hillary Clinton & Donald Trump) = 
+Probability(Hillary Clinton & Donald Trump) = 1/(762+45) = 0.001239
 
 
 As probability of Jill Stein and Gray Johnson is high compared to Hillary Clinton & Donald Trump, I conclude that Jill Stein & Gary are more similar.
@@ -35,7 +35,8 @@ information.
 
 
 
-
+WhiteHouse is the user who is following both Hillary Clinton and Donald Trump. All the current news are tweeted in this page.
+I didn't understand the rivals part here. WhiteHouse is not a rival for both Hillary Clinton and Donald Trump.
 
 
 
@@ -50,7 +51,8 @@ Johnson follows over 3K accounts, while Donald Trump follows less than
 50). Why do you think this is? How might that affect our analysis?
 
 
-
+The Gary Johnson might be very active in Twitter where as Donald Trump is less active. Analysis in this case might be biased because of
+less data for Trump compared to Gary
 
 
 
@@ -65,3 +67,6 @@ https://dev.twitter.com/rest/reference/get/friends/ids, how many requests will
 we have to make? Given how Twitter does rate limiting
 (https://dev.twitter.com/rest/public/rate-limiting), approximately how many
 minutes will it take to collect this data?
+
+Suppose Donald Trump has 45 friends. And if we want to collect the total followers for 45 friends
+it will take 45/15 which is 3 window sessions. It will take 30 minutes to collect the entire data.
