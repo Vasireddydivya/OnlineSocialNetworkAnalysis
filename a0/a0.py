@@ -214,6 +214,15 @@ def friend_overlap(users):
     friends_overlap_list = sorted(friends_overlap_list, key=lambda tup: tup[2], reverse=True)
     return friends_overlap_list
 
+
+#    for index1,user1 in enumerate(users):
+#        for index2,user2 in enumerate(users):
+#            if index2<index1:
+#                friends_overlap=overlap_list(user1['friends'],user2['friends'])
+#                friends_overlap_list.append((user1['screen_name'],user2['screen_name'],len(friends_overlap)))
+#        friends_overlap_list=sorted(friends_overlap_list,key=lambda tup:tup[2],reverse=True)
+#    return friends_overlap_list
+
 def followed_by_hillary_and_donald(users, twitter):
     """
     Find and return the screen_name of the one Twitter user followed by both Hillary
@@ -228,12 +237,23 @@ def followed_by_hillary_and_donald(users, twitter):
         that is followed by both Hillary Clinton and Donald Trump.
     """
     ###TODO
-    hillary_friends_list = get_friends(twitter, 'HillaryClinton')
-    trump_friends_list = get_friends(twitter, 'realDonaldTrump')
+    hillary_friends_list = []
+    trump_friends_list = []
+    # overlap_lst=[]
+    for user in users:
+        # print(str(user['screen_name']))
+        if 'Hillary' in str(user['screen_name']):
+            hillary_friends_list = user['friends']
+        if 'Donald' in str(user['screen_name']):
+            trump_friends_list = user['friends']
     overlap_lst = overlap_list(hillary_friends_list, trump_friends_list)
     request = robust_request(twitter, 'users/lookup', {'user_id': overlap_lst})
+    # print(type(request.text))
+    # string_json=json.dumps(request.text)
     handle_request = json.loads(request.text)
+    # print(handle_request)
     first_elm = handle_request[0]
+    # print(first_elm['screen_name'])
     return str(first_elm['screen_name'])
 
 

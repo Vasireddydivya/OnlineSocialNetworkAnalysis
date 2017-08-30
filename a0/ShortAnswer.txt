@@ -9,11 +9,21 @@ Trump.
 
 How is this approach misleading? How might you fix it?
 
+The similarity between two users can be defined by finding the probabilities because the count of friends for all the users are randomly distributed. 
+
+The overlap friinds for Jill Stein and Gary Johnson = 238
+Using get_friends functions we can find the total friends for all the 4 users.
+Total friends for Jill Stein = 
+Total friends for Gary Johnson =
+Total friends for Hillary Clinton =
+Total friends for Donald Trump =
+
+Probability(Jill Stein & Gary Johnson) = 
+
+Probability(Hillary Clinton & Donald Trump) = 
 
 
-
-
-
+As probability of Jill Stein and Gray Johnson is high compared to Hillary Clinton & Donald Trump, I conclude that Jill Stein & Gary are more similar.
 
 
 
