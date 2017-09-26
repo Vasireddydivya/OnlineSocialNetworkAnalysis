@@ -93,8 +93,13 @@ def tokenize(doc, keep_internal_punct=False):
     array(['hi', 'there', "isn't", 'this', 'fun'], 
           dtype='<U5')
     """
-    ###TODO
-    pass
+    words = []
+    doc = doc.lower()
+    if keep_internal_punct:
+        word = re.findall(r"[\w']+", doc)
+    else:
+        word = re.sub(r'\W+', ' ', doc).split()
+    return word
 
 
 def token_features(tokens, feats):
@@ -115,8 +120,9 @@ def token_features(tokens, feats):
     >>> sorted(feats.items())
     [('token=hi', 2), ('token=there', 1)]
     """
-    ###TODO
-    pass
+    feats0 = Counter()
+    feats0.update("token:" + token for token in tokens)
+    feats.update(feats0)
 
 
 def token_pair_features(tokens, feats, k=3):
@@ -145,12 +151,15 @@ def token_pair_features(tokens, feats, k=3):
     >>> sorted(feats.items())
     [('token_pair=a__b', 1), ('token_pair=a__c', 1), ('token_pair=b__c', 2), ('token_pair=b__d', 1), ('token_pair=c__d', 1)]
     """
-    ###TODO
-    pass
+    feats0 = Counter()
+    for i in range(len(tokens) - k + 1):
+        feats0.update("token_pair=" + '__'.join(t) for t in combinations(tokens[i:i + k], 2))
+    feats.update(feats0)
 
 
 neg_words = set(['bad', 'hate', 'horrible', 'worst', 'boring'])
 pos_words = set(['awesome', 'amazing', 'best', 'good', 'great', 'love', 'wonderful'])
+
 
 def lexicon_features(tokens, feats):
     """
@@ -172,7 +181,7 @@ def lexicon_features(tokens, feats):
     [('neg_words', 1), ('pos_words', 2)]
     """
     ###TODO
-    pass
+
 
 
 def featurize(tokens, feature_fns):
@@ -238,7 +247,7 @@ def accuracy_score(truth, predicted):
       truth.......array of true labels (0 or 1)
       predicted...array of predicted labels (0 or 1)
     """
-    return len(np.where(truth==predicted)[0]) / len(truth)
+    return len(np.where(truth == predicted)[0]) / len(truth)
 
 
 def cross_validation_accuracy(clf, X, labels, k):
@@ -441,7 +450,7 @@ def main():
     results = eval_all_combinations(docs, labels,
                                     [True, False],
                                     feature_fns,
-                                    [2,5,10])
+                                    [2, 5, 10])
     # Print information about these results.
     best_result = results[0]
     worst_result = results[-1]
@@ -449,7 +458,7 @@ def main():
     print('worst cross-validation result:\n%s' % str(worst_result))
     plot_sorted_accuracies(results)
     print('\nMean Accuracies per Setting:')
-    print('\n'.join(['%s: %.5f' % (s,v) for v,s in mean_accuracy_per_setting(results)]))
+    print('\n'.join(['%s: %.5f' % (s, v) for v, s in mean_accuracy_per_setting(results)]))
 
     # Fit best classifier.
     clf, vocab = fit_best_classifier(docs, labels, results[0])
@@ -457,9 +466,9 @@ def main():
     # Print top coefficients per class.
     print('\nTOP COEFFICIENTS PER CLASS:')
     print('negative words:')
-    print('\n'.join(['%s: %.5f' % (t,v) for t,v in top_coefs(clf, 0, 5, vocab)]))
+    print('\n'.join(['%s: %.5f' % (t, v) for t, v in top_coefs(clf, 0, 5, vocab)]))
     print('\npositive words:')
-    print('\n'.join(['%s: %.5f' % (t,v) for t,v in top_coefs(clf, 1, 5, vocab)]))
+    print('\n'.join(['%s: %.5f' % (t, v) for t, v in top_coefs(clf, 1, 5, vocab)]))
 
     # Parse test data
     test_docs, test_labels, X_test = parse_test_data(best_result, vocab)
@@ -474,4 +483,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    token_features(['hi', 'there', 'hi'], feats)
