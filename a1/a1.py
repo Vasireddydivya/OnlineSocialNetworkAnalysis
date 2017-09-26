@@ -29,12 +29,6 @@ def example_graph():
     g = nx.Graph()
     g.add_edges_from(
         [('A', 'B'), ('A', 'C'), ('B', 'C'), ('B', 'D'), ('D', 'E'), ('D', 'F'), ('D', 'G'), ('E', 'F'), ('G', 'F')])
-    #g.add_edges_from([('A', 'B'), ('A', 'C'), ('B', 'D'), ('C', 'D'), ('D', 'E'), ('D', 'F'), ('E', 'G'), ('F', 'G')])
-    # g.add_edges_from(
-    #     [('A', 'B'), ('A', 'C'), ('B', 'D'), ('C', 'D'), ('D', 'E'), ('B', 'E'), ('D', 'F'), ('E', 'G'), ('D', 'G')])
-    # g.add_edges_from(
-    #     [('A', 'B'), ('A', 'C'), ('A', 'D'), ('A', 'E'), ('B', 'C'), ('B', 'F'), ('C', 'F'), ('D', 'G'), ('D', 'H'),
-    #      ('E', 'H'), ('F', 'I'), ('G', 'I'), ('G', 'J'), ('H', 'J'), ('I', 'K'), ('J', 'K')])
     return g
 
 
@@ -115,7 +109,6 @@ def bfs(graph, root, max_depth):
         visited.add(current)
     node2parents2 = defaultdict(list)
     node2parents2.update({k: list(v) for k, v in node2parents.items()})
-
     return node2distances, node2num_paths, node2parents2
 
 
@@ -176,13 +169,12 @@ def bottom_up(root, node2distances, node2num_paths, node2parents):
     result = {}
     path_score = {}
 
-    for node in node2distances:
-        path_score[node] = 1.0
-
     for node, distance in sorted(node2distances.items(), key=lambda x: x[1], reverse=True):
         parents = node2parents[node]
+        path_score[node] = path_score.get(node, 0.0) + 1.0
         for p in parents:
-            path_score[p] = path_score.get(p, 0.0) + (path_score.get(node) / node2num_paths[node])
+            path_score[p] = path_score.get(p, 0.0) + path_score.get(node) / node2num_paths[node]
+
     for node, parents in node2parents.items():
         for p in parents:
             edge = tuple(sorted([p, node]))
@@ -617,9 +609,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # node2distances, node2num_paths, node2parents = bfs(example_graph(), 'A', 5)
-    # print(node2distances)
-    # print(node2num_paths)
-    # print(node2parents)
-    # result = bottom_up('A', node2distances, node2num_paths, node2parents)
-    # print(result)
