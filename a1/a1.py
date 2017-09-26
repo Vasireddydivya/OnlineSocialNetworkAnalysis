@@ -82,7 +82,7 @@ def bfs(graph, root, max_depth):
     nodes = graph.nodes()
     visited = set()  # Mark all other nodes unvisited
     node2distances = defaultdict(int)  # initializing every node a tentative distance value
-    node2parents = defaultdict(list)
+    node2parents = defaultdict(set)
 
     # mark root as current and add to queue
     node2distances[root] = 0
@@ -102,12 +102,14 @@ def bfs(graph, root, max_depth):
             # Checking if current path is shorter than previously found path.
             if neighbor not in node2distances or node2distances[neighbor] >= node2distances[current] + 1:
                 node2distances[neighbor] = node2distances[current] + 1
-                node2parents.setdefault(neighbor, []).append(current)
+                node2parents.setdefault(neighbor, set()).add(current)
                 node2num_paths[neighbor] += 1
                 queue.append(neighbor)
 
         visited.add(current)
-    return node2distances, node2num_paths, node2parents
+    node2parents2 = defaultdict(list)
+    node2parents2.update({k: list(v) for k, v in node2parents.items()})
+    return node2distances, node2num_paths, node2parents2
 
 
 def complexity_of_bfs(V, E, K):
