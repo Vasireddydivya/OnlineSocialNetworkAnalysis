@@ -29,6 +29,8 @@ def example_graph():
     g = nx.Graph()
     g.add_edges_from(
         [('A', 'B'), ('A', 'C'), ('B', 'C'), ('B', 'D'), ('D', 'E'), ('D', 'F'), ('D', 'G'), ('E', 'F'), ('G', 'F')])
+    # g.add_edges_from([('A', 'B'), ('A', 'C'), ('B', 'D'), ('B', 'E'), ('E', 'G'), ('D', 'G'), ('D', 'F')])
+    # g.add_edges_from([('A', 'B'), ('A', 'C'), ('B', 'D'), ('C', 'D'), ('D', 'E'), ('D', 'F'), ('E', 'G'),('F','G')])
     return g
 
 
@@ -168,17 +170,18 @@ def bottom_up(root, node2distances, node2num_paths, node2parents):
     """
     result = {}
     path_score = {}
-
+    for node in node2distances:
+        path_score[node]=1.0
     for node, distance in sorted(node2distances.items(), key=lambda x: x[1], reverse=True):
         parents = node2parents[node]
-        path_score[node] = path_score.get(node, 0.0) + 1.0
+        #path_score[node] = path_score.get(node, 0.0) + 1.0
         for p in parents:
-            path_score[p] = path_score.get(p, 0.0) + path_score.get(node) / node2num_paths[node]
-
+            path_score[p] = path_score.get(p, 0.0) + path_score.get(node) / len(parents)
+    print(path_score)
     for node, parents in node2parents.items():
         for p in parents:
             edge = tuple(sorted([p, node]))
-            result[edge] = path_score[node] / node2num_paths[node]
+            result[edge] = path_score[node] /len(parents)
     return result
 
 
@@ -609,3 +612,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
