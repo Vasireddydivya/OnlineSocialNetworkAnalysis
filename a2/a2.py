@@ -180,8 +180,15 @@ def lexicon_features(tokens, feats):
     >>> sorted(feats.items())
     [('neg_words', 1), ('pos_words', 2)]
     """
-    ###TODO
-
+    feats0 = defaultdict(list)
+    for token in tokens:
+        if token.lower() in neg_words:
+            feats0.setdefault("neg_words:", []).append(token)
+        if token.lower() in pos_words:
+            feats0.setdefault("pos_words:", []).append(token)
+    for f, value in feats0.items():
+        feats0[f] = len(feats0[f])
+    feats.update(feats0)
 
 
 def featurize(tokens, feature_fns):
