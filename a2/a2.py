@@ -97,9 +97,8 @@ def tokenize(doc, keep_internal_punct=False):
     doc = doc.lower()
     if keep_internal_punct:
         word = re.findall(r"[\w']+", doc)
-    else:
-        word = re.sub(r'\W+', ' ', doc).split()
-    return word
+    word = re.sub(r'\W+', ' ', doc).split()
+    return np.array(word, dtype="unicode")
 
 
 def token_features(tokens, feats):
@@ -121,7 +120,7 @@ def token_features(tokens, feats):
     [('token=hi', 2), ('token=there', 1)]
     """
     feats0 = Counter()
-    feats0.update("token:" + token for token in tokens)
+    feats0.update("token=" + token for token in tokens)
     feats.update(feats0)
 
 
@@ -154,7 +153,7 @@ def token_pair_features(tokens, feats, k=3):
     feats0 = Counter()
     for i in range(len(tokens) - k + 1):
         feats0.update("token_pair=" + '__'.join(t) for t in combinations(tokens[i:i + k], 2))
-    feats.update(feats0)
+    feats.update(feats0.items())
 
 
 neg_words = set(['bad', 'hate', 'horrible', 'worst', 'boring'])
@@ -180,15 +179,15 @@ def lexicon_features(tokens, feats):
     >>> sorted(feats.items())
     [('neg_words', 1), ('pos_words', 2)]
     """
-    feats0 = defaultdict(list)
+    feats0 = {'neg_words': [], "pos_words": []}
     for token in tokens:
         if token.lower() in neg_words:
-            feats0.setdefault("neg_words:", []).append(token)
+            feats0["neg_words"].append(token)
         if token.lower() in pos_words:
-            feats0.setdefault("pos_words:", []).append(token)
+            feats0["pos_words"].append(token)
     for f, value in feats0.items():
         feats0[f] = len(feats0[f])
-    feats.update(feats0)
+    feats.update(feats0.items())
 
 
 def featurize(tokens, feature_fns):
@@ -207,8 +206,10 @@ def featurize(tokens, feature_fns):
     >>> feats
     [('neg_words', 0), ('pos_words', 2), ('token=LOVE', 1), ('token=great', 1), ('token=i', 1), ('token=movie', 1), ('token=this', 1)]
     """
-    ###TODO
-    pass
+    feats = defaultdict(lambda: 0)
+    for f in feature_fns:
+        f(tokens, feats)
+    return sorted(feats.items())
 
 
 def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
@@ -243,8 +244,27 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     >>> sorted(vocab.items(), key=lambda x: x[1])
     [('token=great', 0), ('token=horrible', 1), ('token=isn', 2), ('token=movie', 3), ('token=t', 4), ('token=this', 5)]
     """
-    ###TODO
-    pass
+    flist = []
+    data = []
+    indiptr = [0]
+    indicies = []
+    doc_count_feature = Counter()
+    vocabulary = {}
+    for token_list in tokens_list:
+        feat_dict = dict(featurize(token_list, feature_fns))
+        doc_count_feature.update(feat_dict.keys())
+        flist.append(feat_dict)
+    for feature in sorted(doc_count_feature):
+        vocab_index = vocabulary.setdefault(feature, len(vocabulary))
+    for feature_dict in flist:
+        for feature in feature_dict:
+            if doc_count_feature[feature] >= min_freq:
+                vocab_index = vocabulary[feature]
+                indicies.append(vocab_index)
+                data.append(feature_dict[feature])
+        indiptr.append(len(indicies))
+    X = csr_matrix((data, indicies, indiptr), dtype=int)
+    return X, vocabulary
 
 
 def accuracy_score(truth, predicted):
@@ -273,8 +293,9 @@ def cross_validation_accuracy(clf, X, labels, k):
       The average testing accuracy of the classifier
       over each fold of cross-validation.
     """
-    ###TODO
-    pass
+    kf = KFold(k)
+    for train,test in kf:
+
 
 
 def eval_all_combinations(docs, labels, punct_vals,
@@ -491,4 +512,12 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    token_features(['hi', 'there', 'hi'], feats)
+    # feats = featurize(np.array(['i', 'LOVE', 'this', 'great', 'movie']), [token_features, lexicon_features])
+    # print(feats)
+    docs = ["Isn't this movie great?", "Horrible, horrible movie"]
+    tokens_list = [tokenize(d) for d in docs]
+    feature_fns = [token_features]
+    X, vocab = vectorize(tokens_list, feature_fns, min_freq=1)
+    # print(type(X))
+    print(X.toarray())
+    print(sorted(vocab.items(), key=lambda x: x[1]))
