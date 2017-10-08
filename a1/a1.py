@@ -167,17 +167,13 @@ def bottom_up(root, node2distances, node2num_paths, node2parents):
     [(('B', 'D'), 1.0), (('D', 'E'), 2.5), (('D', 'G'), 0.5), (('E', 'F'), 1.5), (('F', 'G'), 0.5)]
     """
     result = {}
-    path_score = {}
-    for node in node2distances:
-        path_score[node]=1.0
-    for node, distance in sorted(node2distances.items(), key=lambda x: x[1], reverse=True):
-        parents = node2parents[node]
-        for p in parents:
-            path_score[p] = path_score.get(p, 0.0) + path_score.get(node) / len(parents)
-    for node, parents in node2parents.items():
-        for p in parents:
-            edge = tuple(sorted([p, node]))
-            result[edge] = path_score[node] /len(parents)
+    path_score = defaultdict(float)
+    for key in node2parents:
+        path_score[key] = 1/node2num_paths[key]
+    for node, distance in sorted(node2distances.items(), key=lambda x: -x[1]):
+        for k in node2parents[node]:
+            path_score[k] =  path_score[k] + path_score[node]
+            result[tuple(sorted([k,node]))] = path_score[node]
     return result
 
 
