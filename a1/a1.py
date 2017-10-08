@@ -27,9 +27,9 @@ def example_graph():
     Do not modify.
     """
     g = nx.Graph()
-    g.add_edges_from(
-        [('A', 'B'), ('A', 'C'), ('B', 'C'), ('B', 'D'), ('D', 'E'), ('D', 'F'), ('D', 'G'), ('E', 'F'), ('G', 'F')])
-    # g.add_edges_from([('A', 'B'), ('A', 'C'), ('B', 'D'), ('B', 'E'), ('E', 'G'), ('D', 'G'), ('D', 'F')])
+    # g.add_edges_from(
+    #     [('A', 'B'), ('A', 'C'), ('B', 'C'), ('B', 'D'), ('D', 'E'), ('D', 'F'), ('D', 'G'), ('E', 'F'), ('G', 'F')])
+    g.add_edges_from([('A', 'B'), ('A', 'C'), ('B', 'D'), ('B', 'E'), ('E', 'G'), ('D', 'G'), ('D', 'F'),('C','D')])
     # g.add_edges_from([('A', 'B'), ('A', 'C'), ('B', 'D'), ('C', 'D'), ('D', 'E'), ('D', 'F'), ('E', 'G'),('F','G')])
     return g
 
@@ -169,20 +169,15 @@ def bottom_up(root, node2distances, node2num_paths, node2parents):
     [(('B', 'D'), 1.0), (('D', 'E'), 2.5), (('D', 'G'), 0.5), (('E', 'F'), 1.5), (('F', 'G'), 0.5)]
     """
     result = {}
-    path_score = {}
-    for node in node2distances:
-        path_score[node]=1.0
-    for node, distance in sorted(node2distances.items(), key=lambda x: x[1], reverse=True):
-        parents = node2parents[node]
-        #path_score[node] = path_score.get(node, 0.0) + 1.0
-        for p in parents:
-            path_score[p] = path_score.get(p, 0.0) + path_score.get(node) / len(parents)
-    print(path_score)
-    for node, parents in node2parents.items():
-        for p in parents:
-            edge = tuple(sorted([p, node]))
-            result[edge] = path_score[node] /len(parents)
+    path_score = defaultdict(float)
+    for key in node2parents:
+        path_score[key] = 1/node2num_paths[key]
+    for node, distance in sorted(node2distances.items(), key=lambda x: -x[1]):
+        for k in node2parents[node]:
+            path_score[k] = path_score[k] + path_score[node]
+            result[tuple(sorted([k,node]))] = path_score[node]
     return result
+
 
 
 def approximate_betweenness(graph, max_depth):
@@ -612,4 +607,10 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # node2distances, node2num_paths, node2parents = bfs(example_graph(), 'A', 5)
+    # # print(sorted(node2distances.items(),key=lambda x:-x[1]))
+    # # print(node2num_paths.items())
+    # # print(node2parents.items())
+    # result = bottom_up('A', node2distances, node2num_paths, node2parents)
+    # print(sorted(result.items()))
 
