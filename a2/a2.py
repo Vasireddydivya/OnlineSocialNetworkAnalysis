@@ -294,7 +294,15 @@ def cross_validation_accuracy(clf, X, labels, k):
       over each fold of cross-validation.
     """
     kf = KFold(k)
-    for train,test in kf:
+    accuracy = []
+    for train, test in kf.split(X):
+        X_train, X_test = X[train], X[test]
+        labels_train, labels_test = labels[train], labels[test]
+        clf.fit(X_train, labels_train)
+        predict_labels = clf.predict(X_test)
+        accuracy.append(accuracy_score(labels_test, predict_labels))
+    mean_avg = np.mean(np.array(accuracy))
+    return mean_avg
 
 
 
@@ -336,9 +344,27 @@ def eval_all_combinations(docs, labels, punct_vals,
 
       This function will take a bit longer to run (~20s for me).
     """
-    ###TODO
-    pass
-
+    feature_combinations = []
+    for L in range(1,len(feature_fns)+1):
+        combination = [list(x) for x in combinations(feature_fns,L)]
+        feature_combinations.extend(combination)
+    result_list = []
+    for punct_val in punct_vals:
+        token_list = []
+        for doc in docs:
+            tokens_list.append(tokenize(doc, punct_val))
+        for freq in min_freqs:
+            for c in feature_combinations:
+                clf = LogisticRegression()
+                X, Vocab = vectorize(token_list, c, freq)
+                mean_acc = cross_validation_accuracy(clf, X, labels, 5)
+                dict = {}
+                dict['punct'] = punct_val
+                dict['features'] = c
+                dict['min_freq'] = freq
+                dict['accuracy'] = mean_acc
+                result_list.append(dict)
+    return sorted(result_list, key = lambda x: -x['accuracy'])
 
 def plot_sorted_accuracies(results):
     """
@@ -346,9 +372,14 @@ def plot_sorted_accuracies(results):
     in ascending order of accuracy.
     Save to "accuracies.png".
     """
-    ###TODO
-    pass
-
+    accuracies = []
+    for r in results:
+        accuracies.append(r['accuracy'])
+    accuracies_list = sorted(accuracies)
+    plt.plot(accuracies_list)
+    plt.xlabel('Accuracy')
+    plt.ylabel('Setting')
+    plt.savefig("accuracies.png")
 
 def mean_accuracy_per_setting(results):
     """
@@ -363,8 +394,9 @@ def mean_accuracy_per_setting(results):
       A list of (accuracy, setting) tuples, SORTED in
       descending order of accuracy.
     """
-    ###TODO
-    pass
+    result = []
+    for r in results:
+
 
 
 def fit_best_classifier(docs, labels, best_result):
