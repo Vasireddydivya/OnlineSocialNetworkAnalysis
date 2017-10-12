@@ -93,8 +93,12 @@ def tokenize(doc, keep_internal_punct=False):
     array(['hi', 'there', "isn't", 'this', 'fun'], 
           dtype='<U5')
     """
-    ###TODO
-    pass
+    words = []
+    doc = doc.lower()
+    if keep_internal_punct:
+        word = re.findall(r"[\w']+", doc)
+    word = re.sub(r'\W+', ' ', doc).split()
+    return np.array(word, dtype="unicode")
 
 
 def token_features(tokens, feats):
@@ -115,8 +119,9 @@ def token_features(tokens, feats):
     >>> sorted(feats.items())
     [('token=hi', 2), ('token=there', 1)]
     """
-    ###TODO
-    pass
+    feats0 = Counter()
+    feats0.update("token=" + token for token in tokens)
+    feats.update(feats0)
 
 
 def token_pair_features(tokens, feats, k=3):
@@ -145,8 +150,10 @@ def token_pair_features(tokens, feats, k=3):
     >>> sorted(feats.items())
     [('token_pair=a__b', 1), ('token_pair=a__c', 1), ('token_pair=b__c', 2), ('token_pair=b__d', 1), ('token_pair=c__d', 1)]
     """
-    ###TODO
-    pass
+    feats0 = Counter()
+    for i in range(len(tokens) - k + 1):
+        feats0.update("token_pair=" + '__'.join(t) for t in combinations(tokens[i:i + k], 2))
+    feats.update(feats0.items())
 
 
 neg_words = set(['bad', 'hate', 'horrible', 'worst', 'boring'])
@@ -171,8 +178,15 @@ def lexicon_features(tokens, feats):
     >>> sorted(feats.items())
     [('neg_words', 1), ('pos_words', 2)]
     """
-    ###TODO
-    pass
+    feats0 = {'neg_words': [], "pos_words": []}
+    for token in tokens:
+        if token.lower() in neg_words:
+            feats0["neg_words"].append(token)
+        if token.lower() in pos_words:
+            feats0["pos_words"].append(token)
+    for f, value in feats0.items():
+        feats0[f] = len(feats0[f])
+    feats.update(feats0.items())
 
 
 def featurize(tokens, feature_fns):
@@ -191,8 +205,10 @@ def featurize(tokens, feature_fns):
     >>> feats
     [('neg_words', 0), ('pos_words', 2), ('token=LOVE', 1), ('token=great', 1), ('token=i', 1), ('token=movie', 1), ('token=this', 1)]
     """
-    ###TODO
-    pass
+    feats = defaultdict(lambda: 0)
+    for f in feature_fns:
+        f(tokens, feats)
+    return sorted(feats.items())
 
 
 def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
@@ -227,8 +243,27 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
     >>> sorted(vocab.items(), key=lambda x: x[1])
     [('token=great', 0), ('token=horrible', 1), ('token=isn', 2), ('token=movie', 3), ('token=t', 4), ('token=this', 5)]
     """
-    ###TODO
-    pass
+    flist = []
+    data = []
+    indiptr = [0]
+    indicies = []
+    doc_count_feature = Counter()
+    vocabulary = {}
+    for token_list in tokens_list:
+        feat_dict = dict(featurize(token_list, feature_fns))
+        doc_count_feature.update(feat_dict.keys())
+        flist.append(feat_dict)
+    for feature in sorted(doc_count_feature):
+        vocab_index = vocabulary.setdefault(feature, len(vocabulary))
+    for feature_dict in flist:
+        for feature in feature_dict:
+            if doc_count_feature[feature] >= min_freq:
+                vocab_index = vocabulary[feature]
+                indicies.append(vocab_index)
+                data.append(feature_dict[feature])
+        indiptr.append(len(indicies))
+    X = csr_matrix((data, indicies, indiptr), dtype=int)
+    return X, vocabulary
 
 
 def accuracy_score(truth, predicted):
@@ -257,8 +292,17 @@ def cross_validation_accuracy(clf, X, labels, k):
       The average testing accuracy of the classifier
       over each fold of cross-validation.
     """
-    ###TODO
-    pass
+    kf = KFold(n = len(labels), n_folds= k)
+    accuracy = []
+    for train, test in kf:
+        X_train, X_test = X[train], X[test]
+        labels_train, labels_test = labels[train], labels[test]
+        clf.fit(X_train, labels_train)
+        predict_labels = clf.predict(X_test)
+        accuracy.append(accuracy_score(labels_test, predict_labels))
+    mean_avg = np.mean(np.array(accuracy))
+    return mean_avg
+
 
 
 def eval_all_combinations(docs, labels, punct_vals,
@@ -299,9 +343,26 @@ def eval_all_combinations(docs, labels, punct_vals,
 
       This function will take a bit longer to run (~20s for me).
     """
-    ###TODO
-    pass
-
+    feature_combinations = []
+    for L in range(len(feature_fns)):
+        feature_combinations += [list(x) for x in combinations(feature_fns,L+1)]
+    result_list = []
+    for punct_val in punct_vals:
+        token_list = []
+        for doc in docs:
+            token_list.append(tokenize(doc, punct_val))
+        for freq in min_freqs:
+            for c in feature_combinations:
+                clf = LogisticRegression()
+                X, Vocab = vectorize(token_list, c, freq)
+                mean_acc = cross_validation_accuracy(clf, X, labels, 5)
+                dict = {}
+                dict['punct'] = punct_val
+                dict['features'] = c
+                dict['min_freq'] = freq
+                dict['accuracy'] = mean_acc
+                result_list.append(dict)
+    return sorted(result_list, key = lambda x: -x['accuracy'])
 
 def plot_sorted_accuracies(results):
     """
@@ -309,9 +370,15 @@ def plot_sorted_accuracies(results):
     in ascending order of accuracy.
     Save to "accuracies.png".
     """
-    ###TODO
-    pass
-
+    accuracies = []
+    for r in results:
+        accuracies.append(r['accuracy'])
+    accuracies_list = sorted(accuracies)
+    plt.plot(accuracies_list)
+    plt.title("Accuracy Setting")
+    plt.xlabel('Accuracy')
+    plt.ylabel('Setting')
+    plt.savefig("accuracies.png")
 
 def mean_accuracy_per_setting(results):
     """
@@ -326,8 +393,21 @@ def mean_accuracy_per_setting(results):
       A list of (accuracy, setting) tuples, SORTED in
       descending order of accuracy.
     """
-    ###TODO
-    pass
+    accuracies_by_setting = {}
+    setting_types = ['min_freq', 'punct', 'features']
+    for setting_type in setting_types:
+        for result_dict in results:
+            setting_value = str(result_dict[setting_type])
+            if setting_type == 'features':
+                setting_value = ' '.join(feature_fn.__name__ for feature_fn in result_dict[setting_type])
+            setting_key = setting_type + "=" + setting_value
+
+            accuracies_by_setting.setdefault(setting_key, []).append(result_dict['accuracy'])
+
+    mean_accuracies = [tuple([np.mean(accuracies), setting_key]) for setting_key, accuracies in accuracies_by_setting.items()]
+    return sorted(mean_accuracies, reverse=True)
+
+
 
 
 def fit_best_classifier(docs, labels, best_result):
