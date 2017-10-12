@@ -293,9 +293,9 @@ def cross_validation_accuracy(clf, X, labels, k):
       The average testing accuracy of the classifier
       over each fold of cross-validation.
     """
-    kf = KFold(k)
+    kf = KFold(n = len(labels), n_folds= k)
     accuracy = []
-    for train, test in kf.split(X):
+    for train, test in kf:
         X_train, X_test = X[train], X[test]
         labels_train, labels_test = labels[train], labels[test]
         clf.fit(X_train, labels_train)
@@ -345,14 +345,13 @@ def eval_all_combinations(docs, labels, punct_vals,
       This function will take a bit longer to run (~20s for me).
     """
     feature_combinations = []
-    for L in range(1,len(feature_fns)+1):
-        combination = [list(x) for x in combinations(feature_fns,L)]
-        feature_combinations.extend(combination)
+    for L in range(len(feature_fns)):
+        feature_combinations += [list(x) for x in combinations(feature_fns,L+1)]
     result_list = []
     for punct_val in punct_vals:
         token_list = []
         for doc in docs:
-            tokens_list.append(tokenize(doc, punct_val))
+            token_list.append(tokenize(doc, punct_val))
         for freq in min_freqs:
             for c in feature_combinations:
                 clf = LogisticRegression()
@@ -377,6 +376,7 @@ def plot_sorted_accuracies(results):
         accuracies.append(r['accuracy'])
     accuracies_list = sorted(accuracies)
     plt.plot(accuracies_list)
+    plt.title("Accuracy Setting")
     plt.xlabel('Accuracy')
     plt.ylabel('Setting')
     plt.savefig("accuracies.png")
@@ -394,8 +394,20 @@ def mean_accuracy_per_setting(results):
       A list of (accuracy, setting) tuples, SORTED in
       descending order of accuracy.
     """
-    result = []
-    for r in results:
+    accuracies_by_setting = {}
+    setting_types = ['min_freq', 'punct', 'features']
+    for setting_type in setting_types:
+        for result_dict in results:
+            setting_value = str(result_dict[setting_type])
+            if setting_type == 'features':
+                setting_value = ' '.join(feature_fn.__name__ for feature_fn in result_dict[setting_type])
+            setting_key = setting_type + "=" + setting_value
+
+            accuracies_by_setting.setdefault(setting_key, []).append(result_dict['accuracy'])
+
+    mean_accuracies = [tuple([np.mean(accuracies), setting_key]) for setting_key, accuracies in accuracies_by_setting.items()]
+    return sorted(mean_accuracies, reverse=True)
+
 
 
 
@@ -521,35 +533,27 @@ def main():
     print('\n'.join(['%s: %.5f' % (s, v) for v, s in mean_accuracy_per_setting(results)]))
 
     # Fit best classifier.
-    clf, vocab = fit_best_classifier(docs, labels, results[0])
-
-    # Print top coefficients per class.
-    print('\nTOP COEFFICIENTS PER CLASS:')
-    print('negative words:')
-    print('\n'.join(['%s: %.5f' % (t, v) for t, v in top_coefs(clf, 0, 5, vocab)]))
-    print('\npositive words:')
-    print('\n'.join(['%s: %.5f' % (t, v) for t, v in top_coefs(clf, 1, 5, vocab)]))
-
-    # Parse test data
-    test_docs, test_labels, X_test = parse_test_data(best_result, vocab)
+    # clf, vocab = fit_best_classifier(docs, labels, results[0])
+    #
+    # # Print top coefficients per class.
+    # print('\nTOP COEFFICIENTS PER CLASS:')
+    # print('negative words:')
+    # print('\n'.join(['%s: %.5f' % (t, v) for t, v in top_coefs(clf, 0, 5, vocab)]))
+    # print('\npositive words:')
+    # print('\n'.join(['%s: %.5f' % (t, v) for t, v in top_coefs(clf, 1, 5, vocab)]))
+    #
+    # # Parse test data
+    # test_docs, test_labels, X_test = parse_test_data(best_result, vocab)
 
     # Evaluate on test set.
-    predictions = clf.predict(X_test)
-    print('testing accuracy=%f' %
-          accuracy_score(test_labels, predictions))
-
-    print('\nTOP MISCLASSIFIED TEST DOCUMENTS:')
-    print_top_misclassified(test_docs, test_labels, X_test, clf, 5)
+    # predictions = clf.predict(X_test)
+    # print('testing accuracy=%f' %
+    #       accuracy_score(test_labels, predictions))
+    #
+    # print('\nTOP MISCLASSIFIED TEST DOCUMENTS:')
+    # print_top_misclassified(test_docs, test_labels, X_test, clf, 5)
 
 
 if __name__ == '__main__':
-    # main()
-    # feats = featurize(np.array(['i', 'LOVE', 'this', 'great', 'movie']), [token_features, lexicon_features])
-    # print(feats)
-    docs = ["Isn't this movie great?", "Horrible, horrible movie"]
-    tokens_list = [tokenize(d) for d in docs]
-    feature_fns = [token_features]
-    X, vocab = vectorize(tokens_list, feature_fns, min_freq=1)
-    # print(type(X))
-    print(X.toarray())
-    print(sorted(vocab.items(), key=lambda x: x[1]))
+    main()
+
