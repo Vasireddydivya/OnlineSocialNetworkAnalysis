@@ -87,19 +87,22 @@ def tokenize(doc, keep_internal_punct=False):
       a numpy array containing the resulting tokens.
 
     >>> tokenize(" Hi there! Isn't this fun?", keep_internal_punct=False)
-    array(['hi', 'there', 'isn', 't', 'this', 'fun'], 
+    array(['hi', 'there', 'isn', 't', 'this', 'fun'],
           dtype='<U5')
     >>> tokenize("Hi there! Isn't this fun? ", keep_internal_punct=True)
-    array(['hi', 'there', "isn't", 'this', 'fun'], 
+    array(['hi', 'there', "isn't", 'this', 'fun'],
           dtype='<U5')
     """
     words = []
     doc = doc.lower()
     if keep_internal_punct:
-        word = re.findall(r"[\w']+", doc)
-    word = re.sub(r'\W+', ' ', doc).split()
+        # word = re.findall(r"[\w'@]+", doc)
+        group_words = re.findall(r"(\w+\S+\w+)|(\w+)", doc, re.U)
+        word = [token for words in group_words for token in words if token != ""]
+        # word = doc.split()
+    else:
+        word = re.sub(r'\W+', ' ', doc).split()
     return np.array(word, dtype="unicode")
-
 
 def token_features(tokens, feats):
     """
@@ -254,17 +257,22 @@ def vectorize(tokens_list, feature_fns, min_freq, vocab=None):
         doc_count_feature.update(feat_dict.keys())
         flist.append(feat_dict)
     for feature in sorted(doc_count_feature):
-        vocab_index = vocabulary.setdefault(feature, len(vocabulary))
+        if doc_count_feature[feature] >= min_freq:
+            vocab_index = vocabulary.setdefault(feature, len(vocabulary))
     for feature_dict in flist:
         for feature in feature_dict:
-            if doc_count_feature[feature] >= min_freq:
+            # if doc_count_feature[feature] >= min_freq:
+            if feature in vocabulary and vocab == None:
                 vocab_index = vocabulary[feature]
+                indicies.append(vocab_index)
+                data.append(feature_dict[feature])
+            elif vocab !=None and feature in vocab:
+                vocab_index = vocab[feature]
                 indicies.append(vocab_index)
                 data.append(feature_dict[feature])
         indiptr.append(len(indicies))
     X = csr_matrix((data, indicies, indiptr), dtype=int)
     return X, vocabulary
-
 
 def accuracy_score(truth, predicted):
     """ Compute accuracy of predictions.
@@ -274,7 +282,6 @@ def accuracy_score(truth, predicted):
       predicted...array of predicted labels (0 or 1)
     """
     return len(np.where(truth==predicted)[0]) / len(truth)
-
 
 def cross_validation_accuracy(clf, X, labels, k):
     """
@@ -343,6 +350,7 @@ def eval_all_combinations(docs, labels, punct_vals,
 
       This function will take a bit longer to run (~20s for me).
     """
+
     feature_combinations = []
     for L in range(len(feature_fns)):
         feature_combinations += [list(x) for x in combinations(feature_fns,L+1)]
@@ -362,7 +370,7 @@ def eval_all_combinations(docs, labels, punct_vals,
                 dict['min_freq'] = freq
                 dict['accuracy'] = mean_acc
                 result_list.append(dict)
-    return sorted(result_list, key = lambda x: -x['accuracy'])
+    return sorted(result_list, key = lambda x: (-x['accuracy'], -x['min_freq']))
 
 def plot_sorted_accuracies(results):
     """
@@ -427,8 +435,16 @@ def fit_best_classifier(docs, labels, best_result):
             training data.
       vocab...The dict from feature name to column index.
     """
-    ###TODO
-    pass
+    token_list = []
+    punct_val = best_result['punct']
+    features = best_result['features']
+    min_freq = best_result['min_freq']
+    for doc in docs:
+        token_list.append(tokenize(doc, punct_val))
+    clf = LogisticRegression()
+    X, Vocab = vectorize(token_list, features, min_freq)
+    clf.fit(X, labels)
+    return clf, Vocab
 
 
 def top_coefs(clf, label, n, vocab):
@@ -448,9 +464,11 @@ def top_coefs(clf, label, n, vocab):
       in descending order of the coefficient for the
       given class label.
     """
-    ###TODO
-    pass
-
+    result_coef = []
+    for feature in vocab:
+        if len(clf.coef_[0]) > vocab[feature]:
+            result_coef.append([feature, (2*label-1)*clf.coef_[0][vocab[feature]]])
+    return sorted(result_coef, key = lambda x: -x[1])[:n]
 
 def parse_test_data(best_result, vocab):
     """
@@ -465,7 +483,7 @@ def parse_test_data(best_result, vocab):
     Params:
       best_result...Element of eval_all_combinations
                     with highest accuracy
-      vocab.........dict from feature name to column index,
+      vocab.........dict from feature name to column index,z
                     built from the training data.
     Returns:
       test_docs.....List of strings, one per testing document,
@@ -476,8 +494,21 @@ def parse_test_data(best_result, vocab):
                     in the test data. Each row is a document,
                     each column is a feature.
     """
-    ###TODO
-    pass
+    docs, labels = read_data(os.path.join('data', 'test'))
+    test_docs = docs
+    test_labels = labels
+    token_list = []
+    punct_val = best_result['punct']
+    features = best_result['features']
+    min_freq = best_result['min_freq']
+    for doc in docs:
+        token_list.append(tokenize(doc, punct_val))
+    clf = LogisticRegression()
+    X_test, Vocab = vectorize(token_list, features, min_freq, vocab)
+    clf.fit(X_test, labels)
+    return test_docs, test_labels, X_test
+
+
 
 
 def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
@@ -503,9 +534,16 @@ def print_top_misclassified(test_docs, test_labels, X_test, clf, n):
     Returns:
       Nothing; see Log.txt for example printed output.
     """
-    ###TODO
-    pass
-
+    pred_Y = clf.predict(X_test)
+    predict_probabilities = clf.predict_proba(X_test)
+    wrong_predictions = []
+    for p in range(len(pred_Y)):
+        if pred_Y[p] != test_labels[p]:
+            wrong_predictions.append((predict_probabilities[p][pred_Y[p]], p, pred_Y[p], test_labels[p]))
+    wrong_predictions_sorted = sorted(wrong_predictions, key = lambda x: -x[0])
+    for t in wrong_predictions_sorted[:n]:
+        print('\n' + "truth=" + str(t[3]) + " predicted=" + str(t[2]) + " proba="+ str(float("{0:.6f}".format(t[0]))))
+        print(test_docs[t[1]])
 
 def main():
     """
@@ -555,3 +593,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
