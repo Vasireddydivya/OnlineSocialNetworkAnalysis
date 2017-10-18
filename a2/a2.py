@@ -365,10 +365,10 @@ def eval_all_combinations(docs, labels, punct_vals,
                 X, Vocab = vectorize(token_list, c, freq)
                 mean_acc = cross_validation_accuracy(clf, X, labels, 5)
                 dict = {}
-                dict['punct'] = punct_val
                 dict['features'] = c
-                dict['min_freq'] = freq
+                dict['punct'] = punct_val
                 dict['accuracy'] = mean_acc
+                dict['min_freq'] = freq
                 result_list.append(dict)
     return sorted(result_list, key = lambda x: (-x['accuracy'], -x['min_freq']))
 
@@ -593,6 +593,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
 
 
