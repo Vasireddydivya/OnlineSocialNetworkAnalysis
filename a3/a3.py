@@ -51,9 +51,12 @@ def tokenize(movies):
     >>> movies['tokens'].tolist()
     [['horror', 'romance'], ['sci-fi']]
     """
-    ###TODO
-    pass
+    # length = len(movies['movieId'])
+    # columns_list = list(movies.columns.values)
+    # for column in columns_list:
 
+    movies["tokens"] = movies["genres"].apply(tokenize_string)
+    return movies
 
 def featurize(movies):
     """
@@ -77,8 +80,40 @@ def featurize(movies):
       - The movies DataFrame, which has been modified to include a column named 'features'.
       - The vocab, a dict from term to int. Make sure the vocab is sorted alphabetically as in a2 (e.g., {'aardvark': 0, 'boy': 1, ...})
     """
-    ###TODO
-    pass
+    tf = {}
+    df = Counter()
+    tf_idf = {}
+    vocab = defaultdict(lambda: 0)
+    vocab_set = set()
+
+    for index, row in movies.iterrows():
+        vocab_set.update(row['tokens'])
+    for term_index, term in enumerate(sorted(vocab_set)):
+        vocab[term] = term_index
+
+    for index, row in movies.iterrows():
+        tf[row['movieId']] = dict(Counter(row['tokens']))
+    for movie in tf:
+        df.update(tf[movie].keys())
+
+    N = len(tf)
+    def form_csr_mat(movies_df_row):
+        movie = movies_df_row['movieId']
+        max_k = max(tf[movie].values())
+        row = []
+        col =[]
+        data = []
+        for term in tf[movie]:
+            row.append(0)
+            col.append(vocab[term])
+            data.append(tf[movie][term] / max_k * math.log10(N / df[term]))
+
+        return csr_matrix((data,(row,col)),shape=(1,len(vocab)))
+
+    movies['features'] = movies.apply(form_csr_mat, axis=1)
+
+    return movies,vocab
+
 
 
 def train_test_split(ratings):
@@ -102,9 +137,14 @@ def cosine_sim(a, b):
       The cosine similarity, defined as: dot(a, b) / ||a|| * ||b||
       where ||a|| indicates the Euclidean norm (aka L2 norm) of vector a.
     """
-    ###TODO
-    pass
-
+    a_array = np.array(a)
+    b_array = np.array(b)
+    b_transpose = np.transpose(b_array)
+    dot_prod_numerator = np.dot(a_array,b_transpose)
+    a_norm = np.linalg.norm(a_array)
+    b_norm = np.linalg.norm(b_array)
+    demoninator = a_norm * b_norm
+    return dot_prod_numerator/demoninator
 
 def make_predictions(movies, ratings_train, ratings_test):
     """
@@ -150,9 +190,9 @@ def main():
     print(sorted(vocab.items())[:10])
     ratings_train, ratings_test = train_test_split(ratings)
     print('%d training ratings; %d testing ratings' % (len(ratings_train), len(ratings_test)))
-    predictions = make_predictions(movies, ratings_train, ratings_test)
-    print('error=%f' % mean_absolute_error(predictions, ratings_test))
-    print(predictions[:10])
+    # predictions = make_predictions(movies, ratings_train, ratings_test)
+    # print('error=%f' % mean_absolute_error(predictions, ratings_test))
+    # print(predictions[:10])
 
 
 if __name__ == '__main__':
