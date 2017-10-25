@@ -17,6 +17,7 @@ from scipy.sparse import csr_matrix
 import urllib.request
 import zipfile
 
+
 def download_data():
     """ DONE. Download and unzip data.
     """
@@ -58,6 +59,7 @@ def tokenize(movies):
     movies["tokens"] = movies["genres"].apply(tokenize_string)
     return movies
 
+
 def featurize(movies):
     """
     Append a new column to the movies DataFrame with header 'features'.
@@ -97,23 +99,23 @@ def featurize(movies):
         df.update(tf[movie].keys())
 
     N = len(tf)
+
     def form_csr_mat(movies_df_row):
         movie = movies_df_row['movieId']
         max_k = max(tf[movie].values())
         row = []
-        col =[]
+        col = []
         data = []
         for term in tf[movie]:
             row.append(0)
             col.append(vocab[term])
             data.append(tf[movie][term] / max_k * math.log10(N / df[term]))
 
-        return csr_matrix((data,(row,col)),shape=(1,len(vocab)))
+        return csr_matrix((data, (row, col)), shape=(1, len(vocab)))
 
     movies['features'] = movies.apply(form_csr_mat, axis=1)
 
-    return movies,vocab
-
+    return movies, vocab
 
 
 def train_test_split(ratings):
@@ -140,11 +142,12 @@ def cosine_sim(a, b):
     a_array = a.toarray()
     b_array = b.toarray()
     b_transpose = b_array.T
-    dot_prod_numerator = np.dot(a_array,b_transpose)
+    dot_prod_numerator = np.dot(a_array, b_transpose)
     a_norm = np.linalg.norm(a_array)
     b_norm = np.linalg.norm(b_array)
     denominator = a_norm * b_norm
-    return dot_prod_numerator[0][0]/denominator
+    return dot_prod_numerator[0][0] / denominator
+
 
 def make_predictions(movies, ratings_train, ratings_test):
     """
