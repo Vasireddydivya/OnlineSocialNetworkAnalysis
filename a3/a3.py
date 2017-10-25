@@ -137,14 +137,14 @@ def cosine_sim(a, b):
       The cosine similarity, defined as: dot(a, b) / ||a|| * ||b||
       where ||a|| indicates the Euclidean norm (aka L2 norm) of vector a.
     """
-    a_array = np.array(a)
-    b_array = np.array(b)
-    b_transpose = np.transpose(b_array)
+    a_array = a.toarray()
+    b_array = b.toarray()
+    b_transpose = b_array.T
     dot_prod_numerator = np.dot(a_array,b_transpose)
     a_norm = np.linalg.norm(a_array)
     b_norm = np.linalg.norm(b_array)
-    demoninator = a_norm * b_norm
-    return dot_prod_numerator/demoninator
+    denominator = a_norm * b_norm
+    return dot_prod_numerator[0][0]/denominator
 
 def make_predictions(movies, ratings_train, ratings_test):
     """
