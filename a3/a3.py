@@ -171,8 +171,23 @@ def make_predictions(movies, ratings_train, ratings_test):
     Returns:
       A numpy array containing one predicted rating for each element of ratings_test.
     """
-    ###TODO
-    pass
+    user_training_dict = defaultdict(list)
+    result = [] # returned finally
+    for index, row in ratings_train.iterrows():
+        user_training_dict.setdefault(row["userId"], []).append((row['movieId'], row['rating']))
+    for index, test_movie in ratings_test.iterrows():
+        movies_rated_by_user = user_training_dict[test_movie['userId']]
+        a_csr = movies.loc[movies['movieId'] == test_movie['movieId'], 'features'].iloc[0]
+        result.append(0)
+        for rated_movie in movies_rated_by_user:
+            b_csr = movies.loc[movies['movieId'] == rated_movie[0], 'features'].iloc[0]
+            sim = cosine_sim(a_csr, b_csr)
+            if sim > 0:
+                result[index] += sim * rated_movie[1]
+        if result[index] == 0:
+            result[index] = sum(rated_movie[1] for rated_movie in movies_rated_by_user) \
+                                                  / len(movies_rated_by_user)
+    return np.array(result)
 
 
 def mean_absolute_error(predictions, ratings_test):
@@ -193,9 +208,9 @@ def main():
     print(sorted(vocab.items())[:10])
     ratings_train, ratings_test = train_test_split(ratings)
     print('%d training ratings; %d testing ratings' % (len(ratings_train), len(ratings_test)))
-    # predictions = make_predictions(movies, ratings_train, ratings_test)
-    # print('error=%f' % mean_absolute_error(predictions, ratings_test))
-    # print(predictions[:10])
+    predictions = make_predictions(movies, ratings_train, ratings_test)
+    print('error=%f' % mean_absolute_error(predictions, ratings_test))
+    print(predictions[:10])
 
 
 if __name__ == '__main__':
