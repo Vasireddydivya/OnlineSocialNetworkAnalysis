@@ -172,22 +172,27 @@ def make_predictions(movies, ratings_train, ratings_test):
       A numpy array containing one predicted rating for each element of ratings_test.
     """
     user_training_dict = defaultdict(list)
-    result = [] # returned finally
+    result_dict = {} # returned finally
+    weighted_avg_rating = []
     for index, row in ratings_train.iterrows():
         user_training_dict.setdefault(row["userId"], []).append((row['movieId'], row['rating']))
+
     for index, test_movie in ratings_test.iterrows():
         movies_rated_by_user = user_training_dict[test_movie['userId']]
         a_csr = movies.loc[movies['movieId'] == test_movie['movieId'], 'features'].iloc[0]
-        result.append(0)
+
         for rated_movie in movies_rated_by_user:
             b_csr = movies.loc[movies['movieId'] == rated_movie[0], 'features'].iloc[0]
             sim = cosine_sim(a_csr, b_csr)
             if sim > 0:
-                result[index] += sim * rated_movie[1]
-        if result[index] == 0:
-            result[index] = sum(rated_movie[1] for rated_movie in movies_rated_by_user) \
-                                                  / len(movies_rated_by_user)
-    return np.array(result)
+                result_dict.setdefault(index,[]).append((sim, rated_movie[1]))
+        #when user has not rated any similar movie
+        if index in result_dict:
+            weighted_avg_rating.append(sum(s*r for s,r in result_dict[index])/sum(s for s,r in result_dict[index]))
+        else:
+            weighted_avg_rating.append(sum(rated_movie[1] for rated_movie in movies_rated_by_user) \
+                                                  / len(movies_rated_by_user))
+    return np.array(weighted_avg_rating)
 
 
 def mean_absolute_error(predictions, ratings_test):
