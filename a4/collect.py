@@ -94,6 +94,7 @@ def stream_tweets(search_term, num_tweets=20):
                 break
         json.dump(tweets_list, f)
     f.close()
+    print("\nCollected " + str(len(tweets_list)) + " using the term " + str(search_term))
     return len(tweets_list)
 
 
@@ -134,7 +135,7 @@ def load_tweets_json_toCsv(filename):
                 cleaned_tweet = clean_tweet(tweet['text'])
                 csv_writer.writerow([tweet["id_str"], cleaned_tweet])
     fp.close()
-
+    print("\nFinished cleaning tweets and they have been added to data.csv")
 
 def main():
     """
