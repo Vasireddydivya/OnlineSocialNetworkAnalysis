@@ -54,7 +54,7 @@ def robust_request(twitter, resource, params, max_tries=5):
 
 def stream_tweets(search_term, num_tweets=20):
     """ This function uses streaming API to collect tweets that contains given search term.
-    This function cleans the tweets that are collected and then saves into .csv file.
+        This function collects the tweets and then saves into json file.
         Args:
           searchTerm .... The term to search the tweets.
           count ... The number of tweets you want to collect
@@ -90,13 +90,17 @@ def clean_tweet(tweet):
     line = re.sub(r'^RT[\s]+', '', line, flags=re.MULTILINE)  # removes RT
     line = re.sub(r'https?:\/\/.*[\r\n]*', '', line, flags=re.MULTILINE)  # remove link
     line = re.sub(r'[:]+', '', line, flags=re.MULTILINE)
-    line = filter(lambda x: x in string.printable, line)  # filter non-ascii characers
-
+    # # line = filter(lambda x: x in string.printable, line)  # filter non-ascii characters
+    # # print(line)
     new_line = ''
     for i in line.split():  # remove @ and #words, punctuataion
         if not i.startswith('@') and not i.startswith('#') and i not in string.punctuation:
             new_line += i + ' '
-    line = new_line
+    # line = new_line
+    # text = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', tweet,
+    #               flags=re.MULTILINE)
+    # line = re.sub(r'@\w+', '', text, flags=re.MULTILINE)
+    return line
 
 
 def load_tweets_json_toCsv(filename):
@@ -115,8 +119,9 @@ def load_tweets_json_toCsv(filename):
         for tweet in tweet_data:
             if "id_str" in tweet and "text" in tweet:
                 cleaned_tweet = clean_tweet(tweet['text'])
-                csv_writer.writerow(tweet["id_str"], cleaned_tweet)
+                csv_writer.writerow([tweet["id_str"], cleaned_tweet])
     fp.close()
+
 
 def main():
     """
@@ -126,9 +131,11 @@ def main():
     """
     print("---------------Collecting data-------------------------------")
     No_of_tweets = stream_tweets(search_term="Trump", num_tweets=1000)
+    print(No_of_tweets)
     load_tweets_json_toCsv(filename="data.txt")
 
     print("----------------Finished Collecting----------------------------")
+
 
 if __name__ == '__main__':
     main()
