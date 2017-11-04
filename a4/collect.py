@@ -86,17 +86,18 @@ def clean_tweet(tweet):
         :param tweet:
         :return:
     """
-    line = re.sub(r'[.,"!]+', '', tweet, flags=re.MULTILINE)  # removes the characters specified
+    line = re.sub(r'[.,@$"!%-&+]+', '', tweet, flags=re.MULTILINE)  # removes the characters specified
     line = re.sub(r'^RT[\s]+', '', line, flags=re.MULTILINE)  # removes RT
     line = re.sub(r'https?:\/\/.*[\r\n]*', '', line, flags=re.MULTILINE)  # remove link
     line = re.sub(r'[:]+', '', line, flags=re.MULTILINE)
-    # # line = filter(lambda x: x in string.printable, line)  # filter non-ascii characters
+    line = list(filter(lambda x: x in string.printable, line))  # filter non-ascii characters
+    line = ''.join(l for l in line)
     # # print(line)
     new_line = ''
     for i in line.split():  # remove @ and #words, punctuataion
         if not i.startswith('@') and not i.startswith('#') and i not in string.punctuation:
             new_line += i + ' '
-    # line = new_line
+    line = new_line
     # text = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', '', tweet,
     #               flags=re.MULTILINE)
     # line = re.sub(r'@\w+', '', text, flags=re.MULTILINE)
