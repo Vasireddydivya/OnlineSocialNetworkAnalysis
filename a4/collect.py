@@ -3,10 +3,10 @@ FILE DESCRIPTION:
 -----------------
 
 This file contains all methods that are used to collect my raw data for clustering and classification , I use the twitter
-streaming api to collect tweets  occuring instantly ( I use the term "Trump" to filter and get tweets that are only
+streaming api to collect tweets  occurring instantly (I use the term "Trump" to filter and get tweets that are only
 related to Donald Trump for my sentiment analysis) and I use my twitter rest api to collect the followers of Ellon musk
-and the corresponding followers of each follower of Ellon Musk for my graph Clustering/Community Detection.
-I also clean the tweets of any URL using regex before save it to a csv file, to try and improve my classification results.
+and the corresponding followers of each follower of Ellon Musk for my graph Clustering/Community Detection. I cleaned
+tweets of any URL using regex before save it to a csv file, to try and improve my classification results.
 
 Module Requirements for this File:
 1) csv
