@@ -23,7 +23,6 @@ You can install the twitter Streaming api by using the command
 
 """
 from TwitterAPI import TwitterAPI
-from collections import Counter
 import json
 import csv
 import sys
