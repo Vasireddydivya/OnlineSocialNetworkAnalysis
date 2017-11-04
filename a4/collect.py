@@ -1,9 +1,26 @@
 """
-collect.py
-"""
-"""
-This file contains methods that are needed to collect data and use that raw data for classification and clustering. I use twitter API to collect
-tweets.
+FILE DESCRIPTION:
+-----------------
+
+This file contains all methods that are used to collect my raw data for clustering and classification , I use the twitter
+streaming api to collect tweets  occuring instantly ( I use the term "Trump" to filter and get tweets that are only
+related to Donald Trump for my sentiment analysis) and I use my twitter rest api to collect the followers of Ellon musk
+and the corresponding followers of each follower of Ellon Musk for my graph Clustering/Community Detection.
+I also clean the tweets of any URL using regex before save it to a csv file, to try and improve my classification results.
+
+Module Requirements for this File:
+1) csv
+2) json
+3) TwitterApi
+4) sys
+5) time
+6) re
+7) twitter (Streaming api)
+8) os
+
+You can install the twitter Streaming api by using the command
+-- pip install twitter
+
 """
 from TwitterAPI import TwitterAPI
 from collections import Counter
