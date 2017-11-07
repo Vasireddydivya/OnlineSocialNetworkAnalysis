@@ -31,6 +31,10 @@ import os
 import twitter as twitter_streamer
 import re
 import string
+import pickle
+from zipfile import ZipFile
+from urllib.request import urlopen
+from io import BytesIO
 
 consumer_key = 'SnaRKwvH4NOLJmdJOWdTPgIn5'
 consumer_secret = 'o3iVzZY0jfLNvDO8A3Q2lRRfniKhyNIwx95HkYp5ye8p2MgPiq'
@@ -78,23 +82,26 @@ def stream_tweets(search_term, num_tweets=20):
         Returns:
           Number of tweets collected in a list.
         """
-    tweets_list = []
-    # create twitter API object
-    oauth = twitter_streamer.OAuth(access_token, access_token_secret, consumer_key, consumer_secret)
-    stream = twitter_streamer.TwitterStream(auth=oauth, secure=True)
-    # iterate over tweets matching this filter text
-    tweet_iter = stream.statuses.filter(track=search_term, language='en', retweeted=False)
-    with open("Collect_Folder" + os.path.sep + 'data.txt', 'w') as f:
-        for tweet in tweet_iter:
-            if "text" in tweet:
-                text = tweet['text']
-                if text.strip().startswith('RT') == False:
-                    tweets_list.append(tweet)
-            if len(tweets_list) == num_tweets:
-                break
-        json.dump(tweets_list, f)
-    f.close()
-    print("\nCollected " + str(len(tweets_list)) + " using the term " + str(search_term))
+    if not os.path.isfile(os.path.join("Collect_Folder" , 'data.txt')):
+        tweets_list = []
+        # create twitter API object
+        oauth = twitter_streamer.OAuth(access_token, access_token_secret, consumer_key, consumer_secret)
+        stream = twitter_streamer.TwitterStream(auth=oauth, secure=True)
+        # iterate over tweets matching this filter text
+        tweet_iter = stream.statuses.filter(track=search_term, language='en', retweeted=False)
+        with open("Collect_Folder" + os.path.sep + 'data.txt', 'w') as f:
+            for tweet in tweet_iter:
+                if "text" in tweet:
+                    text = tweet['text']
+                    if text.strip().startswith('RT') == False:
+                        tweets_list.append(tweet)
+                if len(tweets_list) == num_tweets:
+                    break
+            json.dump(tweets_list, f)
+        f.close()
+        print("\nCollected " + str(len(tweets_list)) + " using the term " + str(search_term))
+    else:
+        tweets_list = json.load(open(os.path.join("Collect_Folder" , 'data.txt')))
     return len(tweets_list)
 
 
@@ -126,16 +133,64 @@ def load_tweets_json_toCsv(filename):
     """
     with open("Collect_Folder" + os.path.sep + 'data.txt', 'r') as rp:
         tweet_data = json.load(rp)
-    rp.close()
+
     file_name = filename.split('.')[0]
     with open("Collect_Folder" + os.path.sep + file_name + '.csv', 'w') as fp:
-        csv_writer = csv.writer(fp)
+        csv_writer = csv.writer(fp, lineterminator="\n")
+        csv_writer.writerow(["ID_str","text"])
         for tweet in tweet_data:
-            if "id_str" in tweet and "text" in tweet:
+            try:
                 cleaned_tweet = clean_tweet(tweet['text'])
-                csv_writer.writerow([tweet["id_str"], cleaned_tweet])
-    fp.close()
+                if cleaned_tweet != "":
+                    csv_writer.writerow([tweet["id_str"], cleaned_tweet])
+            except KeyError:
+                pass
+
+
+
+
     print("\nFinished cleaning tweets and they have been added to data.csv")
+
+
+def afinn_down():
+    url = urlopen('http://www2.compute.dtu.dk/~faan/data/AFINN.zip')
+    zipfile = ZipFile(BytesIO(url.read()))
+    afinn_file = zipfile.open('AFINN/AFINN-111.txt')
+    afinn = dict()
+    for line in afinn_file:
+        parts = line.strip().split()
+        if len(parts) == 2:
+            afinn[parts[0].decode("utf-8")] = int(parts[1])
+    save_file("Collect_Folder" + os.path.sep + 'afinn_data.txt', afinn)
+
+
+def save_file(filename, data):
+    out = open(filename, 'ab+')
+    pickle.dump(data, out)
+    out.close()
+
+
+def label_using_afinn(csv_file, afinn_file):
+    result = []
+    afinn = pickle.load(open("Collect_Folder" + os.path.sep + afinn_file, 'rb'))
+    def tweet_to_rating(tweet):
+        return int(sum([afinn[word] for word in tweet.split() if word in afinn])>0)
+
+    with open("Collect_Folder" + os.path.sep + csv_file) as fh:
+        reader = csv.reader(fh)
+        for row in reader:
+            row.append(tweet_to_rating(row[1]))
+            result.append(row)
+
+    with open("Collect_Folder" + os.path.sep + csv_file+"_labeled.csv", 'w') as fh:
+        writer = csv.writer(fh, lineterminator="\n")
+        writer.writerows(result)
+
+
+
+
+
+
 
 def main():
     """
@@ -146,7 +201,8 @@ def main():
     print("---------------Collecting data-------------------------------")
     No_of_tweets = stream_tweets(search_term="Trump", num_tweets=1000)
     load_tweets_json_toCsv(filename="data.txt")
-
+    afinn_down()
+    label_using_afinn('data.csv', 'afinn_data.txt')
     print("----------------Finished Collecting----------------------------")
 
 
