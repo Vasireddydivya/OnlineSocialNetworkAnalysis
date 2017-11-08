@@ -17,6 +17,9 @@ Module Requirements for this File:
 6) re
 7) twitter (Streaming api)
 8) os
+9) pickle
+10) zipfile
+11) urlopen
 
 You can install the twitter Streaming api by using the command
 -- pip install twitter
@@ -137,7 +140,7 @@ def load_tweets_json_toCsv(filename):
     file_name = filename.split('.')[0]
     with open("Collect_Folder" + os.path.sep + file_name + '.csv', 'w') as fp:
         csv_writer = csv.writer(fp, lineterminator="\n")
-        csv_writer.writerow(["ID_str","text"])
+        # csv_writer.writerow(["ID_str","text"])
         for tweet in tweet_data:
             try:
                 cleaned_tweet = clean_tweet(tweet['text'])
@@ -182,15 +185,10 @@ def label_using_afinn(csv_file, afinn_file):
             row.append(tweet_to_rating(row[1]))
             result.append(row)
 
-    with open("Collect_Folder" + os.path.sep + csv_file+"_labeled.csv", 'w') as fh:
+    with open("Collect_Folder" + os.path.sep + csv_file.split('.')[0]+"_labeled.csv", 'w') as fh:
         writer = csv.writer(fh, lineterminator="\n")
+        writer.writerow(["id_str",'text','label'])
         writer.writerows(result)
-
-
-
-
-
-
 
 def main():
     """
