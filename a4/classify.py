@@ -6,7 +6,8 @@ negative sentiment towards "Trump", Here i have annotated tweets obtained from C
 where 1 represents the positive class and 0 represents the negative one. I have annotated labels using Affin dataset.
 then using this as my training set i have
 trained my support vector machine(SVM) classifier using a linear kernel , then i collect my tweets at run time and
-i classify them using my trained SVM.
+classify the prediction accuracy using the SVM and GLM algorithms. GLM is my baseline algorithm and would like to compare
+remaining models with GLM.
 Module Requirements for this File:
 
 1) sklearn
@@ -20,25 +21,12 @@ Here you might need to download the nltk stopwords corpus using the command
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
-from sklearn import svm
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 import os
 import pandas as pd
 import numpy as np
 
-
-def train_test_split(file_name):
-    """
-    This function reads the CSV file name in Collect_Folder. I'm splitting the data into train and test in 65%, 35%
-    respectively. The file is .csv file in the form of (tweet_id,tweet_text,tweet_label).
-    :param file_name: The name of the file to read
-    :return:
-    """
-    fields = ['text', 'label']
-    twitter_data = pd.read_csv("Collect_Folder" + os.path.sep + file_name, usecols=fields)
-    test = set(range(len(twitter_data))[::350])
-    train = sorted(set(range(len(twitter_data))) - test)
-    test = sorted(test)
-    return twitter_data.iloc[train], twitter_data.iloc[test]
 
 def read_data(data_list, flag):
     """
@@ -48,21 +36,12 @@ def read_data(data_list, flag):
         :param      flag    : Stating true if train file or false for test file
         :return:    2 lists, one data list and one label list
         """
-    text = []
-    label = []
-    for row in data_list.iterrows():
-        if flag:
-            text.append(row[0])
-            label.append(row[1])
-        else:
-            text.append(row[0])
     if flag:
-        return text, label
+        return data_list["text"].tolist(), data_list["label"].tolist()
     else:
-        return text
+        return data_list["text"].tolist()
 
-
-def vectorize_train_data(data_list, mindf=4, maxdf=0.8):
+def vectorize_train_data(data_list, mindf=1, maxdf=1.0):
     """
         This method reads the list of tweets then converts it to a csr_matrix using sklearns built-in function
         we also remove the stopwords from every tweet using nltk's list of stopwords
@@ -84,7 +63,8 @@ def vectorize_test_data(test_data_list, vectorizer):
     data_vector = vectorizer.fit_transform(test_data_list)
     return data_vector
 
-def classify_data(test_vector,train_vector,train_labels,strategy='linear'):
+
+def classify_data(test_vector, train_vector, train_labels,classifier_linear):
     """
         This method takes in the train and test vectors containing tf-idf scores , train_labels and performs classification
         using SVM(Support Vector Machine, and uses a linear kernel for the strategy) and returns a list of predicted labels
@@ -95,28 +75,43 @@ def classify_data(test_vector,train_vector,train_labels,strategy='linear'):
         :param      strategy    : The type of Kernel to use for a Support Vector Machine
         :return:  A list of predicted labels for the test data
         """
-    classifier_linear = svm.SVC(kernel=strategy)
-    classifier_linear.fit(train_vector,train_labels)
+    classifier_linear.fit(train_vector, train_labels)
     predictions = classifier_linear.predict(test_vector)
     return predictions
 
+def getClf_GLM():
+    return LogisticRegression(random_state=42)
+
+def getclf_SVM():
+    return SVC(kernel='linear')
+
 def accuracy_score(true_labels, predicted_labels):
-    """ Compute accuracy of predictions.
+    """ Compute accuracy of predictions.r
         Params:
           truth labels.......array of true labels (0 or 1)
           predicted labels...array of predicted labels (0 or 1)
         """
     return len(np.where(true_labels == predicted_labels)[0]) / len(true_labels)
 
+
 def main():
-    tweets_train, tweets_test = train_test_split("data_labeled.csv")
-    train_data, train_labels = read_data(tweets_train,True)
-    test_data = read_data(tweets_test,False)
-    train_vector, vectorize = vectorize_train_data(data_list=train_data)
-    test_vector = vectorize_test_data(test_data_list=test_data, vectorizer=vectorize)
-    predicted_labels = classify_data(test_vector, train_vector, train_labels)
-    accuracy = accuracy_score(predicted_labels,tweets_test['label'])
-    print('Accuracy Score after fitting the SVM classifier on test data is %.4f' %accuracy)
+    fields = ['text', 'label']
+    twitter_data = pd.read_csv("Collect_Folder" + os.path.sep + "data_labeled.csv", usecols=fields)
+    all_data, all_labels = read_data(twitter_data, True)
+    all_data_vector, vectorize = vectorize_train_data(data_list=all_data)
+    # split all_data into train and test
+    X_train, X_test, Y_train,Y_test = train_test_split(all_data_vector,all_labels,test_size=0.35)
+    #construct GLM classifier
+    clf_glm = getClf_GLM()
+    predicted_labels = classify_data(X_test, X_train, Y_train,clf_glm)
+    accuracy = accuracy_score(predicted_labels, Y_test)
+    print('Accuracy Score after fitting the GLM classifier on test data is %.4f' % accuracy)
+    #construct SVM classifier
+    clf_svm = getclf_SVM()
+    predicted_labels = classify_data(X_test, X_train, Y_train, clf_svm)
+    accuracy = accuracy_score(predicted_labels, Y_test)
+    print('Accuracy Score after fitting the SVM classifier on test data is %.4f' % accuracy)
+
 
 if __name__ == '__main__':
     main()
