@@ -38,9 +38,10 @@ import pickle
 from zipfile import ZipFile
 from urllib.request import urlopen
 from io import BytesIO
+from collections import defaultdict
 
-consumer_key = 'SnaRKwvH4NOLJmdJOWdTPgIn5'
-consumer_secret = 'o3iVzZY0jfLNvDO8A3Q2lRRfniKhyNIwx95HkYp5ye8p2MgPiq'
+consumer_key = 'MdBSfazjouwZTWEc6s59WDjxP'
+consumer_secret = '09ldDrXxBtBRKUi3ilh1bezFqiyzCPPbPfzuvXGPp9E7ipXPWb'
 access_token = '2209159812-IFSHdaseW96iiVj6MABIK7745x8GZQCG262KW9h'
 access_token_secret = 'Jm3H7FQlgWEHkTX23iLAKRxnyC80cLgtJHwLKIcH9bQXN'
 
@@ -53,7 +54,7 @@ def get_twitter():
     return TwitterAPI(consumer_key, consumer_secret, access_token, access_token_secret)
 
 
-def robust_request(twitter, resource, params, max_tries=5):
+def robust_request(resource, params, max_tries=5):
     """ If a Twitter request fails, sleep for 15 minutes.
     Do this at most max_tries times before quitting.
     Args:
@@ -66,6 +67,7 @@ def robust_request(twitter, resource, params, max_tries=5):
       A TwitterResponse object, or None if failed.
     """
     for i in range(max_tries):
+        twitter = get_twitter()
         request = twitter.request(resource, params)
         if request.status_code == 200:
             return request
@@ -85,7 +87,7 @@ def stream_tweets(search_term, num_tweets=20):
         Returns:
           Number of tweets collected in a list.
         """
-    if not os.path.isfile(os.path.join("Collect_Folder" , 'data.txt')):
+    if not os.path.isfile(os.path.join("Collect_Folder", 'data.txt')):
         tweets_list = []
         # create twitter API object
         oauth = twitter_streamer.OAuth(access_token, access_token_secret, consumer_key, consumer_secret)
@@ -104,7 +106,7 @@ def stream_tweets(search_term, num_tweets=20):
         f.close()
         print("\nCollected " + str(len(tweets_list)) + " using the term " + str(search_term))
     else:
-        tweets_list = json.load(open(os.path.join("Collect_Folder" , 'data.txt')))
+        tweets_list = json.load(open(os.path.join("Collect_Folder", 'data.txt')))
     return len(tweets_list)
 
 
@@ -149,9 +151,6 @@ def load_tweets_json_toCsv(filename):
             except KeyError:
                 pass
 
-
-
-
     print("\nFinished cleaning tweets and they have been added to data.csv")
 
 
@@ -176,8 +175,9 @@ def save_file(filename, data):
 def label_using_afinn(csv_file, afinn_file):
     result = []
     afinn = pickle.load(open("Collect_Folder" + os.path.sep + afinn_file, 'rb'))
+
     def tweet_to_rating(tweet):
-        return int(sum([afinn[word] for word in tweet.split() if word in afinn])>0)
+        return int(sum([afinn[word] for word in tweet.split() if word in afinn]) > 0)
 
     with open("Collect_Folder" + os.path.sep + csv_file) as fh:
         reader = csv.reader(fh)
@@ -185,10 +185,90 @@ def label_using_afinn(csv_file, afinn_file):
             row.append(tweet_to_rating(row[1]))
             result.append(row)
 
-    with open("Collect_Folder" + os.path.sep + csv_file.split('.')[0]+"_labeled.csv", 'w') as fh:
+    with open("Collect_Folder" + os.path.sep + csv_file.split('.')[0] + "_labeled.csv", 'w') as fh:
         writer = csv.writer(fh, lineterminator="\n")
-        writer.writerow(["id_str",'text','label'])
+        writer.writerow(["id_str", 'text', 'label'])
         writer.writerows(result)
+
+
+def get_followers(screen_name, key, count_twt=10):
+    """
+    Return a list of Twitter IDs for user that this person follows, up to iter.
+    Note, because of rate limits, it's best to test this method for one candidate before trying
+    on all candidates.
+    Args:
+        twitter.......The TwitterAPI object
+        screen_name... a string of a Twitter screen name
+        key .......... The key to use in robust_request(screen_name/user_id)
+        iter ......... The no of request to fetch
+    Returns:
+        A set of ints, one per friend ID, sorted in ascending order.
+    """
+    response = robust_request('followers/ids', {key: screen_name, 'stringify_ids': "true", "count": count_twt})
+    followers_ids = {}
+    if response != None:
+        for follower in response.get_iterator():
+            followers_ids[follower] = 0
+    return sorted(followers_ids.keys())
+
+
+def followers_map(screen_name, user_count):
+    """
+    This method creates a dictionary of user to the list of followers that follow the user. And we write this data to
+    the file.
+    :param          screen_name : The name of the user who's followers we want
+    :param          user_count  : The number of followers you want to get , who follow the user we search for.
+    :return:        The no of Users id's we have collected
+    """
+
+    # twitter = get_twitter()
+    followers = get_followers(screen_name, 'screen_name', user_count)
+    followers_dict = {}
+    total_users = 0
+    followers_dict[screen_name] = followers  # Followers of screen_name
+    file_name_followers = os.path.join("Collect_Folder", screen_name + '_followers.pickle')
+
+    if os.path.isfile(file_name_followers):
+        fread_followers = open(file_name_followers, 'rb')
+        while 1:
+            try:
+                followers_dict.update(pickle.load(fread_followers))
+            except EOFError:
+                break
+        fread_followers.close()
+    print("Numbers of existing followers", len(followers_dict))
+    # for loop for adding followers to each follower id
+    for index, follower in enumerate(followers):
+        if index%15 == 0:
+            print("{} followers ".format(index))
+        if follower not in followers_dict:
+            follow_list = get_followers(follower, 'user_id', user_count)
+            with open(file_name_followers, 'ab') as fwrite_followers:
+                pickle.dump({follower: follow_list}, fwrite_followers)
+            followers_dict[follower] = follow_list
+
+        total_users += len(followers_dict[follower])
+    # fwrite_followers.close()
+    with open("Collect_Folder" + os.path.sep + screen_name + '.json', 'w') as fp:
+        json.dump(followers_dict, fp)
+    # fp.close()
+    return total_users
+
+
+def collector_details(No_of_users, No_of_tweets):
+    """
+    This method saves details of the collection process employed here that is used for tweet and user collection. This
+    detail that is saved is later used by Summarize.py
+    :param      No_of_users  : The no of user_ids collected that follow ellon musk and ellon musk's followers
+    :param      No_of_tweets : The no of tweets collected using the term "trump" for our classification task
+    :return:
+    """
+    with open("Collect_Folder" + os.path.sep + "collector_details.txt", 'w') as fp:
+        fp.write("No of Users Collected : " + str(No_of_users) + "\n")
+        fp.write("No of tweets Collected : " + str(No_of_tweets) + "\n")
+
+    fp.close()
+
 
 def main():
     """
@@ -201,6 +281,8 @@ def main():
     load_tweets_json_toCsv(filename="data.txt")
     afinn_down()
     label_using_afinn('data.csv', 'afinn_data.txt')
+    num_users = followers_map(screen_name="elonmusk", user_count=200)
+    collector_details(num_users, No_of_tweets)
     print("----------------Finished Collecting----------------------------")
 
 
