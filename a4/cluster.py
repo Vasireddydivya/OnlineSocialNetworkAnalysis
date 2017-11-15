@@ -41,7 +41,7 @@ def create_graph(filename):
                 G.add_edge(key, follower)
             elif follower in G and G.has_edge(key, follower) == False and G.has_edge(follower, key) == False:
                 G.add_edge(key, follower)
-    print("\nCreated graph from data in file --> " + filename + "\n")
+    print("\nCreated graph from data in file: " + filename + "\n")
     print("\nGraph Contains : ")
     print("----------------")
     print("\n " + str(len(G.nodes())) + " Nodes")
@@ -57,9 +57,9 @@ def save_graph(G):
     """
     pos = nx.spring_layout(G, scale=2)
     plt.axis('off')
-    nx.draw_networkx_nodes(G, pos, alpha=0.5, node_color='r', node_size=20)
-    nx.draw_networkx_edges(G, pos, width=0.4, alpha=0.5)
-    plt.savefig("Cluster_Folder"+os.path.sep+"Graph.png", dpi=300)  # save as png
+    nx.draw_networkx_nodes(G, pos, alpha=0.4, node_color='r', node_size=10)
+    nx.draw_networkx_edges(G, pos, width=0.4, alpha=0.3)
+    plt.savefig("Cluster_Folder"+os.path.sep+"Graph.png", dpi=150)  # save as png
 
 
 def main():
