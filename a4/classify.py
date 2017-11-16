@@ -4,10 +4,8 @@ FILE DESCRIPTION:
 This file contains all methods i use to classify my data as having a positive sentiment towards "Donald Trump" or
 negative sentiment towards "Trump", Here i have annotated tweets obtained from Collect.py  as 1 or 0
 where 1 represents the positive class and 0 represents the negative one. I have annotated labels using Affin dataset.
-then using this as my training set i have
-trained my support vector machine(SVM) classifier using a linear kernel , then i collect my tweets at run time and
-classify the prediction accuracy using the SVM and GLM algorithms. GLM is my baseline algorithm and would like to compare
-remaining models with GLM.
+then using this as my training set i have trained my support vector machine(SVM) classifier using a linear kernel ,
+then i collect my tweets at run time and classify the prediction accuracy using the SVM algorithm.
 Module Requirements for this File:
 
 1) sklearn
@@ -22,7 +20,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
+# from sklearn.linear_model import LogisticRegression
 import os
 import pandas as pd
 import numpy as np
@@ -79,8 +77,8 @@ def classify_data(test_vector, train_vector, train_labels,classifier_linear):
     predictions = classifier_linear.predict(test_vector)
     return predictions
 
-def getClf_GLM():
-    return LogisticRegression(random_state=42)
+# def getClf_GLM():
+#     return LogisticRegression(random_state=42)
 
 def getclf_SVM():
     return SVC(kernel='linear')
@@ -93,6 +91,31 @@ def accuracy_score(true_labels, predicted_labels):
         """
     return len(np.where(true_labels == predicted_labels)[0]) / len(true_labels)
 
+def save_classify_details(predicted_labels, X_test):
+    """
+    This method saves the classification details to classify_details.txt, which will be used in our summary.py
+    file to read and display the summary of our classification
+
+    :param    test_data        :  Our list of test tweets obtained from collector.py
+    :param    predicted_labels :  Our predicted classes/labels for our test data by our classify method.
+    :return:  Nothing
+    """
+    pos_instance = 0
+    neg_instance = 0
+    index_pos_instance = 0
+    index_neg_instance = 0
+    for labl in range(len(predicted_labels)):
+        if predicted_labels[labl] == 0:
+            index_neg_instance = labl
+            neg_instance += 1
+        elif predicted_labels[labl] == 1:
+            index_pos_instance = labl
+            pos_instance += 1
+    with open("Classify_Folder"+os.path.sep+'classify_details.txt','w') as fwc:
+        fwc.write("Number of positive instances are: " + str(pos_instance) + '\n')
+        fwc.write("Positive Instance example is: " + str(X_test[index_pos_instance]) + '\n')
+        fwc.write("Number of negative instances are: " + str(neg_instance) + '\n')
+        fwc.write("Negative Instance example is: " + str(X_test[index_neg_instance]) + '\n')
 
 def main():
     fields = ['text', 'label']
@@ -102,16 +125,17 @@ def main():
     # split all_data into train and test
     X_train, X_test, Y_train,Y_test = train_test_split(all_data_vector,all_labels,test_size=0.35)
     #construct GLM classifier
-    clf_glm = getClf_GLM()
-    predicted_labels = classify_data(X_test, X_train, Y_train,clf_glm)
-    accuracy = accuracy_score(predicted_labels, Y_test)
-    print('Accuracy Score after fitting the GLM classifier on test data is %.4f' % accuracy)
+    # clf_glm = getClf_GLM()
+    # predicted_labels = classify_data(X_test, X_train, Y_train,clf_glm)
+    # accuracy = accuracy_score(predicted_labels, Y_test)
+    # print('Accuracy Score after fitting the GLM classifier on test data is %.4f' % accuracy)
+    # save_classify_details(X_test, predicted_labels,'GLM')
     #construct SVM classifier
     clf_svm = getclf_SVM()
     predicted_labels = classify_data(X_test, X_train, Y_train, clf_svm)
     accuracy = accuracy_score(predicted_labels, Y_test)
     print('Accuracy Score after fitting the SVM classifier on test data is %.4f' % accuracy)
-
+    save_classify_details(predicted_labels, all_data)
 
 if __name__ == '__main__':
     main()
