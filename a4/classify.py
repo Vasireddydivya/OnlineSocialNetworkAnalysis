@@ -20,7 +20,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.corpus import stopwords
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-# from sklearn.linear_model import LogisticRegression
 import os
 import pandas as pd
 import numpy as np
@@ -77,9 +76,6 @@ def classify_data(test_vector, train_vector, train_labels,classifier_linear):
     predictions = classifier_linear.predict(test_vector)
     return predictions
 
-# def getClf_GLM():
-#     return LogisticRegression(random_state=42)
-
 def getclf_SVM():
     return SVC(kernel='linear')
 
@@ -124,12 +120,6 @@ def main():
     all_data_vector, vectorize = vectorize_train_data(data_list=all_data)
     # split all_data into train and test
     X_train, X_test, Y_train,Y_test = train_test_split(all_data_vector,all_labels,test_size=0.35)
-    #construct GLM classifier
-    # clf_glm = getClf_GLM()
-    # predicted_labels = classify_data(X_test, X_train, Y_train,clf_glm)
-    # accuracy = accuracy_score(predicted_labels, Y_test)
-    # print('Accuracy Score after fitting the GLM classifier on test data is %.4f' % accuracy)
-    # save_classify_details(X_test, predicted_labels,'GLM')
     #construct SVM classifier
     clf_svm = getclf_SVM()
     predicted_labels = classify_data(X_test, X_train, Y_train, clf_svm)
