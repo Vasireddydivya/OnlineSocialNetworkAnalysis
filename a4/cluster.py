@@ -56,7 +56,7 @@ def save_graph(G):
     :param      G: Our networkx graph object
     :return:    Nothing
     """
-    pos = nx.spring_layout(G,scale=8)
+    pos = nx.spring_layout(G,scale=5)
     plt.axis('off')
     nx.draw_networkx_nodes(G, pos, alpha=0.5, node_size=20, node_color='red')
     nx.draw_networkx_edges(G, pos, alpha=0.3, width=0.4)
@@ -219,7 +219,7 @@ def main():
 
     G = create_graph(filename="Collect_Folder" + os.path.sep + "elonmusk.json")
     save_graph(G)
-    result_cluster_tuple = cluster_graph(G=G, k=5)
+    result_cluster_tuple = cluster_graph(G=G, k=7)
     save_cluster(result_cluster_tuple)
     community_tuple = cluster_details(result_cluster_tuple)
     colors_lst = color_creation(len(community_tuple))
