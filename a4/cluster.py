@@ -32,7 +32,7 @@ def create_graph(filename):
     G = nx.Graph()
     with open(filename, 'r') as fp:
         followers_dict = json.load(fp)
-    new_dict = dict({key: value for key, value in followers_dict.items() if key != 'elonmusk'})
+    new_dict = dict({key: value for key, value in followers_dict.items() if key != 'satyanadella'})
     new_dict = dict({key: value for key, value in new_dict.items() if value != []})
     G.add_nodes_from(new_dict.keys())
     for key in new_dict:
@@ -69,11 +69,11 @@ def cluster_graph(G, k):
     :param      G: Our networkx graph made from twitter data
     :return:    The clusters of our graph.
     """
-    comp = girvan_newman(G)
-    # print(tuple(sorted(c) for c in next(comp)))
+    comp = girvan_newman(G, most_valuable_edge=most_central_edge)
+    #I got 41 components from girvan_newman.
     result = tuple
-    for comp in itertools.islice(comp, k - 1):
-        result = tuple(sorted(c) for c in comp)
+    for communities in itertools.islice(comp, k):
+        result = tuple(sorted(c) for c in communities)
     return result
 
 
@@ -217,7 +217,7 @@ def main():
 
     print("\t\t************************ - Starting cluster.py - ************************ ")
 
-    G = create_graph(filename="Collect_Folder" + os.path.sep + "elonmusk.json")
+    G = create_graph(filename="Collect_Folder" + os.path.sep + "satyanadella.json")
     save_graph(G)
     result_cluster_tuple = cluster_graph(G=G, k=5)
     save_cluster(result_cluster_tuple)

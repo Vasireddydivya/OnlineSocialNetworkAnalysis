@@ -40,8 +40,8 @@ from urllib.request import urlopen
 from io import BytesIO
 from collections import defaultdict
 
-consumer_key = 'MdBSfazjouwZTWEc6s59WDjxP'
-consumer_secret = '09ldDrXxBtBRKUi3ilh1bezFqiyzCPPbPfzuvXGPp9E7ipXPWb'
+consumer_key = 'xoUWj7a2C20Ukz4zthXqz0Wi8'
+consumer_secret = 'PHeiFkLrZHbu5s3TWBapRtA24AT0tVO0Rnl5mBECuYSGFVqE42'
 access_token = '2209159812-IFSHdaseW96iiVj6MABIK7745x8GZQCG262KW9h'
 access_token_secret = 'Jm3H7FQlgWEHkTX23iLAKRxnyC80cLgtJHwLKIcH9bQXN'
 
@@ -71,6 +71,9 @@ def robust_request(resource, params, max_tries=5):
         request = twitter.request(resource, params)
         if request.status_code == 200:
             return request
+        elif request.status_code == 32 or request.status_code == 401:
+            print('Got error %s \nsleeping for 10 seconds.' % request.text)
+            time.sleep(10)
         else:
             print('Got error %s \nsleeping for 15 minutes.' % request.text)
             sys.stderr.flush()
@@ -225,7 +228,7 @@ def followers_map(screen_name, user_count):
     followers = get_followers(screen_name, 'screen_name', user_count)
     followers_dict = {}
     total_users = 0
-    followers_dict[screen_name] = followers  # Followers of screen_name
+    # followers_dict[screen_name] = followers  # Followers of screen_name
     file_name_followers = os.path.join("Collect_Folder", screen_name + '_followers.pickle')
 
     if os.path.isfile(file_name_followers):
@@ -277,11 +280,12 @@ def main():
         :return: Nothing
     """
     print("---------------Collecting data-------------------------------")
-    No_of_tweets = stream_tweets(search_term="Trump", num_tweets=1000)
-    load_tweets_json_toCsv(filename="data.txt")
-    afinn_down()
-    label_using_afinn('data.csv', 'afinn_data.txt')
-    num_users = followers_map(screen_name="elonmusk", user_count=200)
+    # No_of_tweets = stream_tweets(search_term="Trump", num_tweets=1000)
+    # load_tweets_json_toCsv(filename="data.txt")
+    # afinn_down()
+    # label_using_afinn('data.csv', 'afinn_data.txt')
+    No_of_tweets = 1000
+    num_users = followers_map(screen_name="satyanadella", user_count=200)
     collector_details(num_users, No_of_tweets)
     print("----------------Finished Collecting----------------------------")
 
