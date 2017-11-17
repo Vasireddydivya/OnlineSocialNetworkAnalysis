@@ -281,11 +281,10 @@ def main():
         :return: Nothing
     """
     print("---------------Collecting data-------------------------------")
-    # No_of_tweets = stream_tweets(search_term="Trump", num_tweets=1000)
-    # load_tweets_json_toCsv(filename="data.txt")
-    # afinn_down()
-    # label_using_afinn('data.csv', 'afinn_data.txt')
-    No_of_tweets = 1000
+    No_of_tweets = stream_tweets(search_term="Trump", num_tweets=1000)
+    load_tweets_json_toCsv(filename="data.txt")
+    afinn_down()
+    label_using_afinn('data.csv', 'afinn_data.txt')
     num_users = followers_map(screen_name="elonmusk", user_count=300)
     collector_details(num_users, No_of_tweets)
     print("----------------Finished Collecting----------------------------")

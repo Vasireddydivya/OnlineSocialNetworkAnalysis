@@ -218,8 +218,8 @@ def main():
     print("\t\t************************ - Starting cluster.py - ************************ ")
 
     G = create_graph(filename="Collect_Folder" + os.path.sep + "elonmusk.json")
-    save_graph(G)
-    result_cluster_tuple = cluster_graph(G=G, k=7)
+    # save_graph(G)
+    result_cluster_tuple = cluster_graph(G=G, k=3)
     save_cluster(result_cluster_tuple)
     community_tuple = cluster_details(result_cluster_tuple)
     colors_lst = color_creation(len(community_tuple))
