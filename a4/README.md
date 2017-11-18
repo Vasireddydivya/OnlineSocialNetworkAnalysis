@@ -84,10 +84,10 @@ the followers of Ellon Musk.
 
 Classification:
 ---------------
-After collecting the 1000 tweets with 'Trump' as search word and annoted each tweet using Affin data set. But the main
+After collecting the 1000 tweets with 'Trump' as search word and annotated each tweet using Affin data set. But the main
 problem here was the examples for positive class were very few in number compared to my negative class examples, even
 after 4 days of continuous streaming and checking. Due to bias in positive and negative examples, my classifier predicted
-most of positive examples as negative. We can overcome this problem by undersampling the highest class or over sampling the
+most of positive examples as negative. We can overcome this problem by under-sampling the highest class or over-sampling the
 lowest class members. I removed URL's, punctuations and [.,@$"!%-&+] characters, if I change tokenizer then I'm getting
 more accuracy. I need to pay attention with tokenizer function also. But, overall 80% is a good accuracy of prediction
 with only 1000 tweets, and we can see that sentiment for Trump is more negative than positive. If I increase the size of data
