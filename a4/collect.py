@@ -71,6 +71,9 @@ def robust_request(resource, params, max_tries=5):
         request = twitter.request(resource, params)
         if request.status_code == 200:
             return request
+        elif request.status_code == 401:
+            print('Got error %s \nsleeping for 10 seconds.' % request.text)
+            time.sleep(10)
         else:
             print('Got error %s \nsleeping for 15 minutes.' % request.text)
             sys.stderr.flush()
@@ -87,26 +90,26 @@ def stream_tweets(search_term, num_tweets=20):
         Returns:
           Number of tweets collected in a list.
         """
-    if not os.path.isfile(os.path.join("Collect_Folder", 'data.txt')):
-        tweets_list = []
-        # create twitter API object
-        oauth = twitter_streamer.OAuth(access_token, access_token_secret, consumer_key, consumer_secret)
-        stream = twitter_streamer.TwitterStream(auth=oauth, secure=True)
-        # iterate over tweets matching this filter text
-        tweet_iter = stream.statuses.filter(track=search_term, language='en', retweeted=False)
-        with open("Collect_Folder" + os.path.sep + 'data.txt', 'w') as f:
-            for tweet in tweet_iter:
-                if "text" in tweet:
-                    text = tweet['text']
-                    if text.strip().startswith('RT') == False:
-                        tweets_list.append(tweet)
-                if len(tweets_list) == num_tweets:
-                    break
-            json.dump(tweets_list, f)
-        f.close()
-        print("\nCollected " + str(len(tweets_list)) + " using the term " + str(search_term))
-    else:
-        tweets_list = json.load(open(os.path.join("Collect_Folder", 'data.txt')))
+    # if not os.path.isfile(os.path.join("Collect_Folder", 'data.txt')):
+    tweets_list = []
+    # create twitter API object
+    oauth = twitter_streamer.OAuth(access_token, access_token_secret, consumer_key, consumer_secret)
+    stream = twitter_streamer.TwitterStream(auth=oauth, secure=True)
+    # iterate over tweets matching this filter text
+    tweet_iter = stream.statuses.filter(track=search_term, language='en', retweeted=False)
+    with open("Collect_Folder" + os.path.sep + 'data.txt', 'w') as f:
+        for tweet in tweet_iter:
+            if "text" in tweet:
+                text = tweet['text']
+                if text.strip().startswith('RT') == False:
+                    tweets_list.append(tweet)
+            if len(tweets_list) == num_tweets:
+                break
+        json.dump(tweets_list, f)
+    f.close()
+    print("\nCollected " + str(len(tweets_list)) + " using the term " + str(search_term))
+    # else:
+    #     tweets_list = json.load(open(os.path.join("Collect_Folder", 'data.txt')))
     return len(tweets_list)
 
 

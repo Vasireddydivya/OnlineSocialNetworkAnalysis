@@ -1,4 +1,4 @@
-Number of positive instances are: 15
-Positive Instance example is: Trump praises Saudi purge voices confidence in King CrownPrince 
-Number of negative instances are: 334
-Negative Instance example is: This messed up man they gonna send people that have been here for years to a country where there is little opport 
+Number of positive instances are: 13
+Positive Instance example is: President Trump youre destroying the USA 
+Number of negative instances are: 335
+Negative Instance example is: White House Admits That Trump Is Afraid To Speak Out Against Roy Moore Because Of His Own Sex Crimes via 
