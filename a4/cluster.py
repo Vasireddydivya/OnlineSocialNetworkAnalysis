@@ -26,22 +26,19 @@ import json
 import matplotlib.pyplot as plt
 import itertools
 import os
+from networkx.algorithms.community.centrality import girvan_newman
 
-
-def create_graph(filename):
+def create_graph(filename, screen_name):
     G = nx.Graph()
     with open(filename, 'r') as fp:
         followers_dict = json.load(fp)
-    new_dict = dict({key: value for key, value in followers_dict.items() if key != 'elonmusk'})
-    new_dict = dict({key: value for key, value in new_dict.items() if value != []})
-    G.add_nodes_from(new_dict.keys())
-    for key in new_dict:
-        for x in new_dict[key]:
-            if x not in G:
-                G.add_node(x)
-                G.add_edge(key, x)
-            elif x in G and G.has_edge(key, x) == False and G.has_edge(x, key) == False:
-                G.add_edge(key, x)
+    for followed in followers_dict:
+        if followed in followers_dict[screen_name] or followed == screen_name:
+            G.add_node(followed)
+            for follower in followers_dict[followed]:
+                if follower not in G:
+                    G.add_node(follower)
+                G.add_edge(followed, follower)
     print("\nCreated graph from data in file: " + filename + "\n")
     print("\nGraph Contains : ")
     print("----------------")
@@ -56,7 +53,7 @@ def save_graph(G):
     :param      G: Our networkx graph object
     :return:    Nothing
     """
-    pos = nx.spring_layout(G,scale=8)
+    pos = nx.spring_layout(G, scale=8)
     plt.axis('off')
     nx.draw_networkx_nodes(G, pos, alpha=0.5, node_size=20, node_color='red')
     nx.draw_networkx_edges(G, pos, alpha=0.3, width=0.4)
@@ -70,72 +67,10 @@ def cluster_graph(G, k):
     :return:    The clusters of our graph.
     """
     comp = girvan_newman(G)
-    # print(tuple(sorted(c) for c in next(comp)))
     result = tuple
     for comp in itertools.islice(comp, k - 1):
         result = tuple(sorted(c) for c in comp)
     return result
-
-
-# The girvan_newman, _without_most_central_edges, most_central_edge copied from the networkX documentation
-# https://pastebin.com/ieFfnyy1 - Resource for coping the below 3 functions.
-def girvan_newman(G, most_valuable_edge=None):
-    """
-    This is the code given on the NetworkX Documentation site to implement girvan_Newman.
-    :param  G: Our networkx graph object
-    :param  most_valuable_edge: The most valuable edge in our graph ( can be based on weight, centrality measure
-                                      or betweenness score).
-    :return: A generator of communities.
-    """
-    if G.number_of_edges() == 0:
-        yield tuple(nx.connected_components(G))
-        return
-    if most_valuable_edge is None:
-        def most_valuable_edge(G):
-            """Returns the edge with the highest betweenness centrality
-               in the graph `G`.
-            """
-            # We have guaranteed that the graph is non-empty, so this
-            # dictionary will never be empty.
-            betweenness = nx.edge_betweenness_centrality(G)
-            return max(betweenness, key=betweenness.get)
-    # The copy of G here must include the edge weight data.
-
-    g = G.copy().to_undirected()
-    # Self-loops must be removed because their removal has no effect on
-    # the connected components of the graph.
-    g.remove_edges_from(g.selfloop_edges())
-    while g.number_of_edges() > 0:
-        yield _without_most_central_edges(g, most_valuable_edge)
-
-
-def _without_most_central_edges(G, most_valuable_edge):
-    """
-    Built-in method used for Girvan Newman
-    :param G:
-    :param most_valuable_edge:
-    :return:
-    """
-    original_num_components = nx.number_connected_components(G)
-    num_new_components = original_num_components
-    new_components = tuple()
-    while num_new_components <= original_num_components:
-        edge = most_valuable_edge(G)
-        G.remove_edge(*edge)
-        new_components = tuple(nx.connected_components(G))
-        num_new_components = len(new_components)
-    return new_components
-
-
-def most_central_edge(G):
-    """
-    Built-in method used for Girvan Newman
-    :param G:
-    :return:
-    """
-    centrality = betweenness(G)
-    return max(centrality, key=centrality.get)
-
 
 def save_cluster(cluster_tuple):
     """
@@ -208,6 +143,7 @@ def save_clustered_graph(G, clust_dict, color_lst):
     nx.draw_networkx_edges(new_graph, pos, alpha=0.3, width=0.4)
     plt.savefig("Cluster_Folder" + os.path.sep + "clusteredGraph.png", dpi=300)
 
+
 def main():
     """
     This method runs the methods defined in this file and saves the details after identifying the clusters and generates
@@ -217,7 +153,7 @@ def main():
 
     print("\t\t************************ - Starting cluster.py - ************************ ")
 
-    G = create_graph(filename="Collect_Folder" + os.path.sep + "elonmusk.json")
+    G = create_graph(filename=os.path.join("Collect_Folder", "elonmusk.json"), screen_name='elonmusk')
     save_graph(G)
     result_cluster_tuple = cluster_graph(G=G, k=5)
     save_cluster(result_cluster_tuple)
