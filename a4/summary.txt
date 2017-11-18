@@ -2,10 +2,10 @@ Collect.py Details
 No of Users Collected : 2156
 No of tweets Collected : 1000
 Classify.py Details 
-Number of positive instances are: 15
-Positive Instance example is: Trump praises Saudi purge voices confidence in King CrownPrince 
-Number of negative instances are: 334
-Negative Instance example is: This messed up man they gonna send people that have been here for years to a country where there is little opport 
+Number of positive instances are: 13
+Positive Instance example is: President Trump youre destroying the USA 
+Number of negative instances are: 335
+Negative Instance example is: White House Admits That Trump Is Afraid To Speak Out Against Roy Moore Because Of His Own Sex Crimes via 
 Cluster.py Details 
-Number of communities discovered: 44
-Average Number of users per community: 60.09090909090909
+Number of communities discovered: 5
+Average Number of users per community: 440.6
