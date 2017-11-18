@@ -40,8 +40,8 @@ from urllib.request import urlopen
 from io import BytesIO
 from collections import defaultdict
 
-consumer_key = 'MdBSfazjouwZTWEc6s59WDjxP'
-consumer_secret = '09ldDrXxBtBRKUi3ilh1bezFqiyzCPPbPfzuvXGPp9E7ipXPWb'
+consumer_key = 'xoUWj7a2C20Ukz4zthXqz0Wi8'
+consumer_secret = 'PHeiFkLrZHbu5s3TWBapRtA24AT0tVO0Rnl5mBECuYSGFVqE42'
 access_token = '2209159812-IFSHdaseW96iiVj6MABIK7745x8GZQCG262KW9h'
 access_token_secret = 'Jm3H7FQlgWEHkTX23iLAKRxnyC80cLgtJHwLKIcH9bQXN'
 
