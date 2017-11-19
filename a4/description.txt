@@ -17,7 +17,7 @@ They are as follows:
 
 Classification of Sentiment of Tweets related to Donald Trump:
 --------------------------------------------------------------
-I collected 1000 tweets related to the term "Trump" and annotated each Tweet using Affin data set into in collect.py.
+I collected 1000 tweets related to the term "Trump" and annotated each Tweet using Affin data set in collect.py.
 In classify.py i read these saved tweets from the .csv file and cleaned the tweets by removing the stopwords using the
 nltk stopwords corpus. I vectorized entire data and then split the vectorized data into train and test my csr matrices.
 After this I use these matrices in my Support Vector Machine to classify them as either Positive Sentiment (Class Label : 1)
