@@ -73,14 +73,15 @@ this package and used the algorithm.
 
 Clustering :
 ------------
-After collecting the Elom musk followers data, I used girvan newman on entire data. I got 44 components from
-Girvan newman algorithm for the first time and can't group those communities into 5 clusters properly. So, I've filtered
-only the Ellon Musk followers from the entire dictionary and created graph only for those followers. Then, I'm able to
-properly cluster the data into 5 clusters. The ripple effect if spread to one community, easily spread to different
-communities of Ellon Musk. Hence it becomes easier for people who do marketing to analyze which customer's to target in
-this way. If more data about each user was available then we could categorize each cluster's sex, age-group and occupation
-they do then we could get more insights on what kind of people actually follow Ellon Musk and what kind of people follow
-the followers of Ellon Musk.
+After collecting the Ellon musk followers data, I used girvan newman algorithm for those followers who are following
+Ellon Musk. After filtering the followers I draw a graph by adding edge between all followers and followed. I can see
+communities of filtered followers before clustering. I created 5 clusters and the ripple effect if spread to one community,
+easily spread to different communities of Ellon Musk. Hence it becomes easier for people who do marketing to analyze which
+customer's to target in this way. If more data about each user was available then we could categorize each cluster's sex,
+age-group and occupation they do then we could get more insights on what kind of people actually follow Ellon Musk and
+what kind of people follow the followers of Ellon Musk. After clustering into 5 communities i created a colored graph for
+representing the communities and the average number of people for each community is 1000.
+
 
 Classification:
 ---------------
@@ -88,10 +89,10 @@ After collecting the 1000 tweets with 'Trump' as search word and annotated each 
 problem here was the examples for positive class were very few in number compared to my negative class examples, even
 after 4 days of continuous streaming and checking. Due to bias in positive and negative examples, my classifier predicted
 most of positive examples as negative. We can overcome this problem by under-sampling the highest class or over-sampling the
-lowest class members. I removed URL's, punctuations and [.,@$"!%-&+] characters, if I change tokenizer then I'm getting
-more accuracy. I need to pay attention with tokenizer function also. But, overall 80% is a good accuracy of prediction
-with only 1000 tweets, and we can see that sentiment for Trump is more negative than positive. If I increase the size of data
-it might help me to better analyze the results.
+lowest class members. I removed URL's, punctuations and [.,@$"!%-&+] characters, if I change my tokenizer function then
+I might get more accuracy. Next time, I need to pay attention with tokenizer function also. But, overall 80% is a good
+accuracy of prediction with 1000 tweets, and we can see that sentiment for Trump is more negative than positive. If I
+increase the size of data it might help me to better analyze the results.
 
 ************************************************************************************************************************
 
