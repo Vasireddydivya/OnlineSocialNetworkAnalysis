@@ -1,11 +1,11 @@
 Collect.py Details 
-No of Users Collected : 2156
+No of Users Collected : 4884
 No of tweets Collected : 1000
-Classify.py Details 
-Number of positive instances are: 13
-Positive Instance example is: President Trump youre destroying the USA 
-Number of negative instances are: 335
-Negative Instance example is: White House Admits That Trump Is Afraid To Speak Out Against Roy Moore Because Of His Own Sex Crimes via 
 Cluster.py Details 
 Number of communities discovered: 5
-Average Number of users per community: 440.6
+Average Number of users per community: 1004.0
+Classify.py Details 
+Number of positive instances are: 4
+Positive Instance example is: Trump is reining in agencies that exceeded their constitutional writ writes Chris DeMuth 
+Number of negative instances are: 345
+Negative Instance example is: FoxNews It's about Trump and the uneducated electorate It's a race to the bottom Who can be the meanest and dumbest 
