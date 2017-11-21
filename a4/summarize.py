@@ -22,10 +22,9 @@ def main():
     f = open('summary.txt', 'r+')
     f.truncate()
     write_summary_file("Collect.py Details ", collector_details)
-    classify_details = read_details_allFiles("Classify_Folder", "classify_details.txt")
-    write_summary_file("Classify.py Details ", classify_details)
     cluster_details = read_details_allFiles("Cluster_Folder", "cluster_details.txt")
     write_summary_file("Cluster.py Details ", cluster_details)
-
+    classify_details = read_details_allFiles("Classify_Folder", "classify_details.txt")
+    write_summary_file("Classify.py Details ", classify_details)
 if __name__ == '__main__':
     main()

@@ -71,7 +71,7 @@ def robust_request(resource, params, max_tries=5):
         request = twitter.request(resource, params)
         if request.status_code == 200:
             return request
-        elif request.status_code == 401:
+        elif request.status_code == 401 or request.status_code == 34:
             print('Got error %s \nsleeping for 10 seconds.' % request.text)
             time.sleep(10)
         else:
