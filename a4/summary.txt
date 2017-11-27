@@ -5,7 +5,7 @@ Cluster.py Details
 Number of communities discovered: 5
 Average Number of users per community: 1004.0
 Classify.py Details 
-Number of positive instances are: 4
-Positive Instance example is: Trump is reining in agencies that exceeded their constitutional writ writes Chris DeMuth 
-Number of negative instances are: 345
+Number of positive instances are: 3
+Positive Instance example is: 37) Those glorious debates Trump mopped the floor with you Lord of the Flies What is the symbolism of flies? R 
+Number of negative instances are: 346
 Negative Instance example is: FoxNews It's about Trump and the uneducated electorate It's a race to the bottom Who can be the meanest and dumbest 
