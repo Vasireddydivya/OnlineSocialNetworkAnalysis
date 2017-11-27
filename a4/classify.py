@@ -38,7 +38,7 @@ def read_data(data_list, flag):
     else:
         return data_list["text"].tolist()
 
-def vectorize_train_data(data_list, mindf=1, maxdf=1.0):
+def vectorize_data(data_list, mindf=1, maxdf=1.0):
     """
         This method reads the list of tweets then converts it to a csr_matrix using sklearns built-in function
         we also remove the stopwords from every tweet using nltk's list of stopwords
@@ -49,16 +49,6 @@ def vectorize_train_data(data_list, mindf=1, maxdf=1.0):
     vectorizer = TfidfVectorizer(min_df=mindf, max_df=maxdf, sublinear_tf=True, use_idf=True, stop_words=stopword_list)
     data_vector = vectorizer.fit_transform(data_list)
     return data_vector, vectorizer
-
-
-def vectorize_test_data(test_data_list, vectorizer):
-    """
-        :param test_data_list:
-        :param vectorizer:
-        :return:
-        """
-    data_vector = vectorizer.fit_transform(test_data_list)
-    return data_vector
 
 
 def classify_data(test_vector, train_vector, train_labels,classifier_linear):
@@ -117,7 +107,7 @@ def main():
     fields = ['text', 'label']
     twitter_data = pd.read_csv("Collect_Folder" + os.path.sep + "data_labeled.csv", usecols=fields)
     all_data, all_labels = read_data(twitter_data, True)
-    all_data_vector, vectorize = vectorize_train_data(data_list=all_data)
+    all_data_vector, vectorize = vectorize_data(data_list=all_data)
     # split all_data into train and test
     X_train, X_test, Y_train,Y_test = train_test_split(all_data_vector,all_labels,test_size=0.35)
     #construct SVM classifier
