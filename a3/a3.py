@@ -5,6 +5,9 @@
 # Here we'll implement a content-based recommendation algorithm.
 # It will use the list of genres for a movie as the content.
 # The data come from the MovieLens project: http://grouplens.org/datasets/movielens/
+# Note that I have not provided many doctests for this one. I strongly
+# recommend that you write your own for each function to ensure your
+# implementation is correct.
 
 # Please only use these imports.
 from collections import Counter, defaultdict
@@ -136,7 +139,7 @@ def cosine_sim(a, b):
       a...A csr_matrix with shape (1, number_features)
       b...A csr_matrix with shape (1, number_features)
     Returns:
-      The cosine similarity, defined as: dot(a, b) / ||a|| * ||b||
+      A float. The cosine similarity, defined as: dot(a, b) / ||a|| * ||b||
       where ||a|| indicates the Euclidean norm (aka L2 norm) of vector a.
     """
     a_array = a.toarray()
